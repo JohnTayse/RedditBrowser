@@ -131,16 +131,20 @@ function displayItem(id){
     
     browseItem += '<p class="title">' + item.title + '<br/>';
     browseItem += 'by <a href="https://reddit.com' + item.author + '" target="_blank">' + item.author + '</a>&nbsp;' + postAge + '</p><br/>';
+    browseItem += '<a href="#" id="nextItem" class="ui-btn ui-corner-all ui-btn-inline">Next</a>';
     if(index > 0){
-        browseItem += '<a href="#" id="backItem" class="ui-btn ui-corner-all ui-btn-inline"><</a>';
+        browseItem += '<a href="#" id="backItem" class="ui-btn ui-corner-all ui-btn-inline"><</a><br/>';
     }
-    browseItem += '<a href="#" id="nextItem" class="ui-btn ui-corner-all ui-btn-inline">Next</a><br/>';
 
     if(image.hostname === 'v.redd.it'){
         browseItem += '<video muted preload="auto" class="itemImage" controls><source src="' + image.href + '/HLSPlaylist.m3u8" type="application/vnd.apple.mpegURL"></video>';
     }
-    else if(image.hostname === 'i.redd.it' || image.hostname === 'i.imgur.com'){
+    else if(image.hostname === 'i.redd.it' || image.hostname === 'i.imgur.com' || image.hostname === 'www.vidble.com'){
         browseItem += '<img class="itemImage" src="' + image.href + '"/>';
+    }
+    else if(image.hostname === 'imgur.com'){
+        var imgurid = image.href.split('/');
+        browseItem += '<blockquote class="imgur-embed-pub" lang="en" data-id="' + imgurid[imgurid.length - 1] + '"><a href="' + image.href + '">' + item.title + '</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>';
     }
     else{
         var source = image.href;
@@ -150,7 +154,8 @@ function displayItem(id){
         if(image.hostname.includes('hub.com')){
             source = source.replace('hub.com/', hub.com)
         }
-        browseItem += '<iframe class="itemImage" height="512" width="100%" scrolling="no" src="' + source + '" allowfullscreen="" style="overflow: hidden; width: 100%; margin: 0px auto;"></iframe>';
+
+        browseItem += '<iframe class="itemImage" height="512" width="100%" src="' + source + '" allowfullscreen="" style="width: 100%; margin: 0px auto;"></iframe>';
     }
 
     $('#browseItem').show();
@@ -166,11 +171,6 @@ function displayItem(id){
         displayList();
     })
 
-    $('#backItem').click(function(){
-        var guid = subredditList[index - 1].guid;
-        displayItem(guid);
-    })
-
     $('#nextItem').click(function(){
         if(index + 1 >= subredditList.length){
             getNextItemList(id);
@@ -179,6 +179,26 @@ function displayItem(id){
             var guid = subredditList[index + 1].guid;
             displayItem(guid);
         }
+    })
+
+    $('#backItem').click(function(){
+        var guid = subredditList[index - 1].guid;
+        displayItem(guid);
+    })
+
+    $('#browseItem').on('swiperight', function(){
+        if(index + 1 >= subredditList.length){
+            getNextItemList(id);
+        }
+        else{
+            var guid = subredditList[index + 1].guid;
+            displayItem(guid);
+        }
+    })
+
+    $('#browseItem').on('swipeleft', function(){
+        var guid = subredditList[index - 1].guid;
+        displayItem(guid);
     })
 }
 
@@ -189,19 +209,19 @@ function getAge(timestamp){
 
     var seconds = diff / 1000;
     if(seconds < 61){
-        return Math.floor(seconds) + ' second' + (seconds == 1 ? '' : 's')
+        return Math.floor(seconds) + ' second' + (Math.floor(seconds) == 1 ? '' : 's')
     }
     var minutes = seconds / 60;
     if(minutes < 61){
-        return Math.floor(minutes) + ' minute' + (minutes == 1 ? '' : 's')
+        return Math.floor(minutes) + ' minute' + (Math.floor(minutes) == 1 ? '' : 's')
     }
     var hours = minutes / 60;
     if(hours < 25){
-        return Math.floor(hours) + ' hour' + (hours == 1 ? '' : 's')
+        return Math.floor(hours) + ' hour' + (Math.floor(hours) == 1 ? '' : 's')
     }
     var days = hours / 24;
     if(days < 32){
-        return Math.floor(days) + ' day' + (days == 1 ? '' : 's')
+        return Math.floor(days) + ' day' + (Math.floor(days) == 1 ? '' : 's')
     }
     return d.toLocaleDateString();
 }
