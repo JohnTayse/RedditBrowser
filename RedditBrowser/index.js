@@ -143,7 +143,7 @@ function displayItem(id){
         browseItem += '<img class="itemImage" src="' + image.href + '"/>';
     }
     else{
-        browseItem += '<iframe height="512" width="100%" scrolling="no" src="' + image.href + '" allowfullscreen="" style="overflow: hidden; width: 100%; margin: 0px auto;"></iframe>';
+        browseItem += '<iframe class="itemImage" height="512" width="100%" scrolling="no" src="' + image.href + '" allowfullscreen="" style="overflow: hidden; width: 100%; margin: 0px auto;"></iframe>';
     }
 
     $('#browseItem').show();
