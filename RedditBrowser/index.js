@@ -93,7 +93,7 @@ function displayList(){
         var imgs = $(content).find('img');
         if(imgs.length > 0){
             browseList += '<a id="' + this.guid + '" class="item ui-bar ui-bar-a">'
-            browseList += '<p class="title">' + this.title + '</p>';
+            browseList += '<p class="title clamp">' + this.title + '</p>';
             browseList += imgs[0].outerHTML;
             browseList += '</a>'
         }
@@ -143,7 +143,14 @@ function displayItem(id){
         browseItem += '<img class="itemImage" src="' + image.href + '"/>';
     }
     else{
-        browseItem += '<iframe class="itemImage" height="512" width="100%" scrolling="no" src="' + image.href + '" allowfullscreen="" style="overflow: hidden; width: 100%; margin: 0px auto;"></iframe>';
+        var source = image.href;
+        if(image.hostname === 'gfycat.com'){
+            source = source.replace('gfycat.com/', 'gfycat.com/ifr/');
+        }
+        if(image.hostname.includes('hub.com')){
+            source = source.replace('hub.com/', hub.com)
+        }
+        browseItem += '<iframe class="itemImage" height="512" width="100%" scrolling="no" src="' + source + '" allowfullscreen="" style="overflow: hidden; width: 100%; margin: 0px auto;"></iframe>';
     }
 
     $('#browseItem').show();
@@ -155,6 +162,7 @@ function displayItem(id){
         $('#browseItem').hide();
         $('#browseList').show();
         $('#subredditButton').remove();
+        $('#browseItem').html('');
         displayList();
     })
 

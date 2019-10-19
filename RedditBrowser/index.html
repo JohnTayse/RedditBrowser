@@ -39,6 +39,13 @@
         .title{
             color: #999;
             background-color: #191919;
+            overflow: hidden;
+        }
+        .clamp{
+            height: 20px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical; 
         }
         .item{
             border: 1px solid #ccc;
@@ -47,7 +54,7 @@
             display: inline-block;
         }
         .itemImage{
-            height:100%;
+            max-height:100%;
             max-width:100%;
         }
     </style>
