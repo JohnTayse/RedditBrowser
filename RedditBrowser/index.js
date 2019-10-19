@@ -7,6 +7,8 @@ $(function()
 {
     $('#homeButton').click(function(){
         subreddit = '';
+        subredditList = [];
+        sort = '';
         $('#subredditInput').val('');
         $('#subredditButton').remove();
         history.pushState("", document.title, window.location.pathname + window.location.search);
