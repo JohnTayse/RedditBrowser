@@ -1,4 +1,4 @@
-var subreddit = 0;
+var subreddit = '';
 var subredditList = [];
 var favorites = [];
 
@@ -187,6 +187,11 @@ function displayItem(id){
     })
 
     $('#browseItem').on('swiperight', function(){
+        var guid = subredditList[index - 1].guid;
+        displayItem(guid);
+    })
+
+    $('#browseItem').on('swipeleft', function(){
         if(index + 1 >= subredditList.length){
             getNextItemList(id);
         }
@@ -194,11 +199,6 @@ function displayItem(id){
             var guid = subredditList[index + 1].guid;
             displayItem(guid);
         }
-    })
-
-    $('#browseItem').on('swipeleft', function(){
-        var guid = subredditList[index - 1].guid;
-        displayItem(guid);
     })
 }
 
