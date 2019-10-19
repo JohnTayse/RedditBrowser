@@ -1,5 +1,6 @@
 var subreddit = '';
 var subredditList = [];
+var sort = '';
 var favorites = [];
 
 $(function()
@@ -30,7 +31,7 @@ $(function()
     }
     else{
         $('#browseList').show();
-        subreddit = subreddit.substring(1, subreddit.length);
+        subreddit = subreddit.substring(1);
         getSubredditList();
     }
 });
@@ -48,7 +49,7 @@ function browse(){
 function getSubredditList(){
     $('#browseList').html('');
     $.mobile.loading('show');
-    var url= 'https://www.reddit.com/r/' + subreddit + '.rss';
+    var url = getUrl('');
     feednami.load(url)
     .then(feed => {
         subredditList = feed.entries;
@@ -58,7 +59,7 @@ function getSubredditList(){
 
 function getNextList(guid){
     $.mobile.loading('show');
-    var url= 'https://www.reddit.com/r/' + subreddit + '.rss?after=' + guid;
+    var url = getUrl(guid);
     feednami.load(url)
     .then(feed => {
         subredditList = subredditList.concat(feed.entries);
@@ -68,7 +69,7 @@ function getNextList(guid){
 
 function getNextItemList(guid){
     $.mobile.loading('show');
-    var url= 'https://www.reddit.com/r/' + subreddit + '.rss?after=' + guid;
+    var url = getUrl(guid); 
     feednami.load(url)
     .then(feed => {
         var nextGuid = feed.entries[0].guid;
@@ -77,15 +78,46 @@ function getNextItemList(guid){
     })
 }
 
+function getUrl(guid){
+    var baseUrl = 'https://www.reddit.com/r/' + subreddit + '/';
+    var simpleSorts = ['hot', 'new', 'top'];
+    if(sort === ''){
+        baseUrl += '.rss';
+    }
+    else if(simpleSorts.includes(sort)){
+        baseUrl += sort + '/.rss'
+    }
+    else{
+        baseUrl += 'top/.rss?t=' + sort;
+    }
+
+    if(guid !== ''){
+        baseUrl += (baseUrl.includes('?') ? '&' : '?') + 'after=' + guid;
+    }
+
+    return baseUrl;
+}
+
 function displayList(){
     var browseList = ''
     var isFavorite = favorites.find(function(ele){return ele === subreddit});
     if(isFavorite !== undefined){
-        browseList += '<button id="favoriteButton" onclick="removeFavorite()" class="ui-btn ui-corner-all ui-btn-inline">' + subreddit + ' &#9733</button></br>';
+        browseList += '<button id="favoriteButton" onclick="removeFavorite()" class="ui-btn ui-corner-all ui-btn-inline">' + subreddit + ' &#9733</button>';
     }
     else {
-        browseList += '<button id="favoriteButton" onclick="addFavorite()" class="ui-btn ui-corner-all ui-btn-inline">' + subreddit + ' &#9734</button></br>';
+        browseList += '<button id="favoriteButton" onclick="addFavorite()" class="ui-btn ui-corner-all ui-btn-inline">' + subreddit + ' &#9734</button>';
     }
+
+    //sort
+    browseList += '<select name="sortSelect" id="sortSelect" data-mini="true" data-inline="true">';
+    browseList += '<option value="hot">Hot</option>';
+    browseList += '<option value="new">New</option>';
+    browseList += '<option value="top">Top Today</option>';
+    browseList += '<option value="week">Top This Week</option>';
+    browseList += '<option value="month">Top This Month</option>';
+    browseList += '<option value="year">Top This Year</option>';
+    browseList += '<option value="all">Top All Time</option>';
+    browseList += '</select><br/>';
     
 
     $.each(subredditList, function(i){
@@ -101,7 +133,19 @@ function displayList(){
     browseList += '<br/><a href="#" id="nextButton" class="ui-btn ui-corner-all ui-btn-inline">Next</a>';
     $('#browseList').attr('class', 'ui-grid-c');
     $('#browseList').html(browseList).trigger('create');
+
+    if(sort !== ''){
+        var el = $('#sortSelect');
+        el.val(sort).attr('selected', true).siblings('option').removeAttr('selected');
+        el.selectmenu("refresh", true);
+    }
+
     $.mobile.loading('hide');
+
+    $('#sortSelect').on('change', function(){
+        sort = $('#sortSelect').val();
+        getSubredditList();
+    })
 
     $('#nextButton').click(function(){
         getNextList(subredditList[subredditList.length - 1].guid);
