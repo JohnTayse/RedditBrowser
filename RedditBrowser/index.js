@@ -276,6 +276,7 @@ function loadFavorites(){
     if (typeof (Storage) !== "undefined") {
         if(localStorage.getItem("favorites") !== null){
             favorites = JSON.parse(localStorage.getItem("favorites"));
+            favorites.sort();
             displayFavorites();
         }
     } else {
@@ -287,7 +288,8 @@ function loadFavorites(){
 }
 
 function addFavorite(){
-    favorites.push(subreddit);
+    favorites.push(subreddit.toLowerCase());
+    favorites.sort();
 
     if (typeof (Storage) !== "undefined") {
         localStorage.setItem("favorites", JSON.stringify(favorites));
