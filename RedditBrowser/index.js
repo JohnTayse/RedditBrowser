@@ -176,7 +176,7 @@ function displayItem(id){
     var browseItem = '';
     
     browseItem += '<p class="title">' + item.title + '<br/>';
-    browseItem += 'by <a href="https://reddit.com' + item.author + '" target="_blank">' + item.author + '</a>&nbsp;' + postAge + '</p><br/>';
+    browseItem += '<a href="' + links[3] + '" target="_blank">(source)</a>&nbsp;' + postAge + '</p><br/>';
     browseItem += '<a href="#" id="nextItem" class="ui-btn ui-corner-all ui-btn-inline">Next</a>';
     if(index > 0){
         browseItem += '<a href="#" id="backItem" class="ui-btn ui-corner-all ui-btn-inline"><</a><br/>';
