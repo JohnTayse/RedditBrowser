@@ -185,12 +185,22 @@ function displayItem(id){
     if(image.hostname === 'v.redd.it'){
         browseItem += '<video muted preload="auto" class="itemImage" controls><source src="' + image.href + '/HLSPlaylist.m3u8" type="application/vnd.apple.mpegURL"></video>';
     }
+    if(image.hostname === 'i.imgur.com' && image.href.includes('.gifv')){
+        browseItem += '<video muted preload="auto" class="itemImage" controls><source src="' + image.href.replace('.gifv', '.webm') + '" type="video/webm"></video>';
+    }
     else if(image.hostname === 'i.redd.it' || image.hostname === 'i.imgur.com' || image.hostname === 'www.vidble.com'){
         browseItem += '<img class="itemImage" src="' + image.href + '"/>';
     }
     else if(image.hostname === 'imgur.com'){
-        var imgurid = image.href.split('/');
-        browseItem += '<blockquote class="imgur-embed-pub" lang="en" data-id="' + imgurid[imgurid.length - 1] + '"><a href="' + image.href + '">' + item.title + '</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>';
+        var url = image.href.split('/');
+        var imgurid = url[url.length - 1];
+        
+        if(image.href.includes('/a/')){
+            browseItem += '<iframe allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true" class="imgur-embed-iframe-pub imgur-embed-iframe-pub-a-' + imgurid + '-true-540" src="https://imgur.com/a/' + imgurid + '/embed" id="imgur-embed-iframe-pub-a-' + imgurid + '" style="width: 100%; margin: 0px auto;"</iframe>';
+        }
+        else{
+            browseItem += '<blockquote class="imgur-embed-pub" lang="en" data-id="' + imgurid + '"><a href="' + image.href + '">' + item.title + '</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>';
+        }
     }
     else{
         var source = image.href;
@@ -201,7 +211,7 @@ function displayItem(id){
             source = source.replace('hub.com/', hub.com)
         }
 
-        browseItem += '<iframe class="itemImage" height="512" width="100%" src="' + source + '" allowfullscreen="" style="width: 100%; margin: 0px auto;"></iframe>';
+        browseItem += '<iframe class="itemImage" height="512" width="100%" src="' + source + '" allowfullscreen="true" style="width: 100%; margin: 0px auto;"></iframe>';
     }
 
     $('#browseItem').show();
