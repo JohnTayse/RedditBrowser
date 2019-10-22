@@ -246,12 +246,6 @@ function displayItem(id){
         var guid = subredditList[index - 1].guid;
         displayItem(guid);
     })
-
-    if(image.hostname === 'imgur.com'){
-        $('#image img').attr('src').change(function(){
-            alert($('#image img').att('src'));
-        })
-    }
 }
 
 function setImgur(){
