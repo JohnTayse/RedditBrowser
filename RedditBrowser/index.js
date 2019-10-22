@@ -165,8 +165,9 @@ function displayItem(id){
         return ele.guid == id;
     });
     var content = $.parseHTML(item.description);
-    var links = $(content).find('a')
-    var image = links[2];
+    var links = $(content).find('a').toArray();
+    var image = links.find(function(ele){return ele.innerText === '[link]'});
+    var source = links.find(function(ele){return ele.innerText === '[comments]'});
 
     $('#subredditButton').remove();
     $('#header').append('<a href="#" id="subredditButton" class="ui-btn ui-corner-all ui-btn-inline">r/' + subreddit + '</a>').trigger('create');
@@ -176,7 +177,7 @@ function displayItem(id){
     var browseItem = '';
     
     browseItem += '<p class="title">' + item.title + '<br/>';
-    browseItem += '<a href="' + links[3] + '" target="_blank">(source)</a>&nbsp;' + postAge + '</p><br/>';
+    browseItem += '<a href="' + source + '" target="_blank">(source)</a>&nbsp;' + postAge + '</p>';
     browseItem += '<a href="#" id="nextItem" class="ui-btn ui-corner-all ui-btn-inline">Next</a>';
     if(index > 0){
         browseItem += '<a href="#" id="backItem" class="ui-btn ui-corner-all ui-btn-inline"><</a><br/>';
@@ -241,21 +242,12 @@ function displayItem(id){
         var guid = subredditList[index - 1].guid;
         displayItem(guid);
     })
-
-    $('#browseItem').on('swiperight', function(){
-        var guid = subredditList[index - 1].guid;
-        displayItem(guid);
-    })
-
-    $('#browseItem').on('swipeleft', function(){
-        if(index + 1 >= subredditList.length){
-            getNextItemList(id);
-        }
-        else{
-            var guid = subredditList[index + 1].guid;
-            displayItem(guid);
-        }
-    })
+    
+    if(image.hostname === 'imgur.com'){
+        $('#image img').att('src').change(function(){
+            alert($('#image img').att('src'));
+        })
+    }
 }
 
 function getAge(timestamp){
