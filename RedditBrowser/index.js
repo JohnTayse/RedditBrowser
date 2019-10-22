@@ -202,7 +202,6 @@ function displayItem(id){
         else{
             browseItem += '<blockquote class="imgur-embed-pub" lang="en" data-id="' + imgurid + '"><a href="' + image.href + '">' + item.title + '</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>';
         }
-        setImgur();
     }
     else{
         var source = image.href;
@@ -246,18 +245,6 @@ function displayItem(id){
         var guid = subredditList[index - 1].guid;
         displayItem(guid);
     })
-}
-
-function setImgur(){
-    if(document.querySelector('#image img')!=null) {
-        alert("The element is displayed, you can put your code instead of this alert.")
-        return;
-    }
-    else {
-        setTimeout(function() {
-            setImgur()
-        }, 500);
-    }
 }
 
 function getAge(timestamp){
