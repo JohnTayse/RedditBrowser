@@ -202,6 +202,7 @@ function displayItem(id){
         else{
             browseItem += '<blockquote class="imgur-embed-pub" lang="en" data-id="' + imgurid + '"><a href="' + image.href + '">' + item.title + '</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>';
         }
+        setImgur();
     }
     else{
         var source = image.href;
@@ -209,7 +210,10 @@ function displayItem(id){
             source = source.replace('gfycat.com/', 'gfycat.com/ifr/');
         }
         if(image.hostname.includes('hub.com')){
-            source = source.replace('hub.com/', hub.com)
+            source = source.replace('hub.com/', 'hub.com/embed/')
+            var search = image.search.substring(1).split('&')
+            var viewkey = search.find(x => x.includes('viewkey')).split('=')[1];
+            source = source.substring(0, source.indexOf('embed/')) + 'embed/' + viewkey;
         }
 
         browseItem += '<iframe class="itemImage" height="512" width="100%" src="' + source + '" allowfullscreen="true" style="width: 100%; margin: 0px auto;"></iframe>';
@@ -242,11 +246,23 @@ function displayItem(id){
         var guid = subredditList[index - 1].guid;
         displayItem(guid);
     })
-    
+
     if(image.hostname === 'imgur.com'){
-        $('#image img').att('src').change(function(){
+        $('#image img').attr('src').change(function(){
             alert($('#image img').att('src'));
         })
+    }
+}
+
+function setImgur(){
+    if(document.querySelector('#image img')!=null) {
+        alert("The element is displayed, you can put your code instead of this alert.")
+        return;
+    }
+    else {
+        setTimeout(function() {
+            setImgur()
+        }, 500);
     }
 }
 
