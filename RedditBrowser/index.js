@@ -81,7 +81,16 @@ function getNextItemList(guid){
 }
 
 function getUrl(guid){
-    var baseUrl = 'https://www.reddit.com/r/' + subreddit + '/';
+    var reddit = '';
+    if(subreddit.indexOf('u/') > -1){
+        reddit = subreddit
+    }
+    else
+    {
+        reddit = 'r/' + subreddit
+    }
+
+    var baseUrl = 'https://www.reddit.com/' + reddit + '/';
     var simpleSorts = ['hot', 'new', 'top'];
     if(sort === ''){
         baseUrl += '.rss';
