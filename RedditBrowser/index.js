@@ -39,7 +39,7 @@ $(function()
 });
 
 function browse(){
-    subreddit = $('#subredditInput').val();
+    subreddit = $('#subredditInput').val().toLowerCase();
     if(subreddit !== ''){
         $('#entersubreddit').hide();
         $('#browseList').show();
@@ -296,7 +296,7 @@ function loadFavorites(){
 }
 
 function addFavorite(){
-    favorites.push(subreddit.toLowerCase());
+    favorites.push(subreddit);
     favorites.sort();
 
     if (typeof (Storage) !== "undefined") {
