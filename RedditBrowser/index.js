@@ -64,7 +64,7 @@ function getNextList(guid){
     var url = getUrl(guid);
     feednami.load(url)
     .then(feed => {
-        subredditList = subredditList.concat(feed.entries);
+        concatList(feed.entries);
         displayList();
     })
 }
@@ -74,10 +74,15 @@ function getNextItemList(guid){
     var url = getUrl(guid); 
     feednami.load(url)
     .then(feed => {
-        var nextGuid = feed.entries[0].guid;
-        subredditList = subredditList.concat(feed.entries);
+		concatList(feed.entries);
+		var nextGuid = subredditList[subredditList.findIndex((el) => el.guid === guid) + 1].guid;
         displayItem(nextGuid);
     })
+}
+
+function concatList(newList){
+	subredditList = subredditList.concat(newList);
+	subredditList = subredditList.filter((elem, index, self) => self.findIndex((t) => {return t.guid === elem.guid}) === index);
 }
 
 function getUrl(guid){
@@ -222,7 +227,10 @@ function displayItem(id){
             var search = image.search.substring(1).split('&')
             var viewkey = search.find(x => x.includes('viewkey')).split('=')[1];
             source = source.substring(0, source.indexOf('embed/')) + 'embed/' + viewkey;
-        }
+		}
+		if(image.hostname.includes('gifs.com')){
+			source = source.replace('/watch/', '/ifr/');
+		}
 
         browseItem += '<iframe class="itemImage" height="512" width="100%" src="' + source + '" allowfullscreen="true" style="width: 100%; margin: 0px auto;"></iframe>';
     }
@@ -331,8 +339,13 @@ function removeFavorite(){
 }
 
 function displayFavorites(){
-    var favoritesHtml = '';
-    $.each(favorites, function(){
+	var favoritesHtml = '';
+	var subredditFavs = favorites.filter(x => x.substring(0, 2) !== 'u/');
+	var userFavs = favorites.filter(x => x.substring(0, 2) === 'u/');
+    $.each(subredditFavs, function(){
+        favoritesHtml += '<button onclick="$(\'#subredditInput\').val(\'' + this + '\'); browse();" class="ui-btn ui-btn-corner-all ui-btn-inline">' + this + '</button><br/>';
+	})
+	$.each(userFavs, function(){
         favoritesHtml += '<button onclick="$(\'#subredditInput\').val(\'' + this + '\'); browse();" class="ui-btn ui-btn-corner-all ui-btn-inline">' + this + '</button><br/>';
     })
     $('#favorites').html(favoritesHtml).trigger('create');
