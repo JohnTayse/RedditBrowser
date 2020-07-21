@@ -172,7 +172,7 @@ function displayList(){
     })
 }
 
-function displayItem(id){
+function displayItem(id, isNavBack){
     var index = -1;
     var item = subredditList.find(function(ele, i){
         index = i;
@@ -191,16 +191,36 @@ function displayItem(id){
     var browseItem = '';
     
     browseItem += '<p class="title">' + item.title + '<br/>';
-    browseItem += '<a href="' + source + '" target="_blank">(source)</a>&nbsp;' + postAge + '</p>';
+	browseItem += '<a href="' + source + '" target="_blank">(source)</a>&nbsp;';
+	browseItem += '<a href="' + item.author.replace('/u/', 'u/') + '" target="_blank">(user)</a>&nbsp;';
+	browseItem += '' + postAge + '</p>';
     browseItem += '<a href="#" id="nextItem" class="ui-btn ui-corner-all ui-btn-inline">Next</a>';
     if(index > 0){
         browseItem += '<a href="#" id="backItem" class="ui-btn ui-corner-all ui-btn-inline"><</a><br/>';
     }
 
-    if(image.hostname === 'v.redd.it'){
-        browseItem += '<video muted preload="auto" autoplay="autoplay" loop="loop" class="itemImage" controls><source src="' + image.href + '/HLSPlaylist.m3u8" type="application/vnd.apple.mpegURL"></video>';
+	if(image === undefined){
+		if(isNavBack){
+			var guid = subredditList[index - 1].guid;
+        	displayItem(guid, true);
+		}
+		else if(index + 1 >= subredditList.length){
+            getNextItemList(id);
+        }
+        else{
+            var guid = subredditList[index + 1].guid;
+            displayItem(guid);
+        }
+	}
+    else if(image.hostname === 'v.redd.it'){
+		//browseItem += '<video muted preload="auto" autoplay="autoplay" loop="loop" class="itemImage" controls><source src="' + image.href + '/HLSPlaylist.m3u8" type="application/vnd.apple.mpegURL"></video>';
+		browseItem += `<blockquote class="reddit-card" data-card-created="1595353215">
+			<a href="`+ item.link + `">` + item.title + `</a>
+			</blockquote>
+			<script async src="//embed.redditmedia.com/widgets/platform.js" charset="UTF-8">
+			</script>`
     }
-    if(image.hostname === 'i.imgur.com' && image.href.includes('.gifv')){
+    else if(image.hostname === 'i.imgur.com' && image.href.includes('.gifv')){
         browseItem += '<video muted preload="auto" autoplay="autoplay" loop="loop" class="itemImage" controls><source src="' + image.href.replace('.gifv', '.mp4') + '" type="video/mp4"></video>';
     }
     else if(image.hostname === 'i.redd.it' || image.hostname === 'i.imgur.com' || image.hostname === 'www.vidble.com'){
@@ -260,7 +280,7 @@ function displayItem(id){
 
     $('#backItem').click(function(){
         var guid = subredditList[index - 1].guid;
-        displayItem(guid);
+        displayItem(guid, true);
     })
 }
 
