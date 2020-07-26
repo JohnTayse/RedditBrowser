@@ -144,7 +144,9 @@ var browser = (function(){
 		
 		browseItem += '<p class="title">' + item.title + '<br/>';
 		browseItem += '<a href="' + source + '" target="_blank">(source)</a>&nbsp;';
-		browseItem += '<a href="#/user/' + item.author.replace('/u/', '') + '" target="_blank">(user)</a>&nbsp;';
+		if(subreddit.indexOf('u/') === -1){
+			browseItem += '<a href="#/user/' + item.author.replace('/u/', '') + '" target="_blank">(user)</a>&nbsp;';
+		}
 		if(r !== undefined){
 			var sub = r.innerText.trim().replace('r/', '');
 			browseItem += '<a href="#/subreddit/' + sub + '" target="_blank">(' + sub + ')</a>&nbsp;';

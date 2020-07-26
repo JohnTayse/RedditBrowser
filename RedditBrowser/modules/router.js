@@ -23,6 +23,7 @@ const router = () => {
 		}
 	}
 	route.component.render(id);
+	window.scrollTo(0,0);
 };
 
 const parseLocation = () => location.hash.slice(1).toLowerCase() || '/';

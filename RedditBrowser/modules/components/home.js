@@ -11,6 +11,8 @@ function browse(){
 
 const HomeComponent = {
 	render: () => {
+		$('#subredditButton').remove();
+
 		var favorites = browser.getFavorites();
 		var favoritesHtml = '';
 		var subredditFavs = favorites.filter(x => x.substring(0, 2) !== 'u/');
