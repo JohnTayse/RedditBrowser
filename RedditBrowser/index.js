@@ -366,7 +366,22 @@ function displayFavorites(){
         favoritesHtml += '<button onclick="$(\'#subredditInput\').val(\'' + this + '\'); browse();" class="ui-btn ui-btn-corner-all ui-btn-inline">' + this + '</button><br/>';
 	})
 	$.each(userFavs, function(){
-        favoritesHtml += '<button onclick="$(\'#subredditInput\').val(\'' + this + '\'); browse();" class="ui-btn ui-btn-corner-all ui-btn-inline">' + this + '</button><br/>';
-    })
+		favoritesHtml += '<button onclick="$(\'#subredditInput\').val(\'' + this + '\'); browse();" class="ui-btn ui-btn-corner-all ui-btn-inline">' + this + '</button><br/>';
+	})
+	favoritesHtml += '<button onclick="exportFavorites();" class="ui-btn ui-btn-corner-all ui-btn-inline">Export Favorites</button><br/>';
     $('#favorites').html(favoritesHtml).trigger('create');
+}
+
+function exportFavorites(){
+	var exportHtml = '';
+	var subredditFavs = favorites.filter(x => x.substring(0, 2) !== 'u/');
+	var userFavs = favorites.filter(x => x.substring(0, 2) === 'u/');
+    $.each(subredditFavs, function(){
+        exportHtml += '<p>' + this + '</p>';
+	})
+	$.each(userFavs, function(){
+		exportHtml += '<p>' + this + '</p>';
+	})
+	exportHtml += '<button onclick="displayFavorites();" class="ui-btn ui-btn-corner-all ui-btn-inline">Favorites Exported</button><br/>';
+	$('#favorites').html(exportHtml).trigger('create');
 }
