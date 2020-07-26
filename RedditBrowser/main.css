@@ -1,0 +1,28 @@
+body {
+	background-color: black !important;
+}
+#idInput {
+	color: #000;
+}
+.title{
+	color: #999;
+	background-color: #191919;
+	overflow: hidden;
+	margin: 0px;
+}
+.clamp{
+	height: 20px;
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical; 
+}
+.item{
+	border: 1px solid #ccc;
+	width: 22%;
+	height: 215px;
+	display: inline-block;
+}
+.itemImage{
+	max-height:100%;
+	max-width:100%;
+}
