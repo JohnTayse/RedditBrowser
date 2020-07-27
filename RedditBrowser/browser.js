@@ -85,12 +85,18 @@ var browser = (function(){
 		list.forEach(post => {
 			var content = $.parseHTML(post.description);
 			var imgs = $(content).find('img');
+			var links = $(content).find('a').toArray();
+			var image = links.find(function(ele){return ele.innerText === '[link]'});
 			if(imgs.length > 0){
 				browseList += '<a id="' + post.guid + '" class="item ui-bar ui-bar-a">'
 				browseList += '<p class="title clamp">' + post.title + '</p>';
 				browseList += imgs[0].outerHTML;
 				browseList += '</a>'
-			}
+			} else if (!image.href.includes('/comments/')){
+				browseList += '<a id="' + post.guid + '" class="item ui-bar ui-bar-a">'
+				browseList += '<p class="title clamp">' + post.title + '</p>';
+				browseList += '</a>'
+		 	}
 		})
 		browseList += '<br/><a href="#" id="nextButton" class="ui-btn ui-corner-all ui-btn-inline">Next</a>';
 		browseList += '</section>'
@@ -158,7 +164,7 @@ var browser = (function(){
 		}
 		browseItem += '</br>'
 	
-		if(image === undefined){
+		if(image === undefined || image.href.includes('/comments/')){
 			if(isNavBack){
 				var guid = subredditList[index - 1].guid;
 				browser.displayItem(subreddit, subredditList, sort, guid, true);
@@ -179,6 +185,7 @@ var browser = (function(){
 				var guid = subredditList[index + 1].guid;
 				browser.displayItem(subreddit, subredditList, sort, guid);
 			}
+			return;
 		}
 		else if(image.hostname === 'v.redd.it'){
 			//browseItem += '<video muted preload="auto" autoplay="autoplay" loop="loop" class="itemImage" controls><source src="' + image.href + '/HLSPlaylist.m3u8" type="application/vnd.apple.mpegURL"></video>';
@@ -188,7 +195,7 @@ var browser = (function(){
 				<script async src="//embed.redditmedia.com/widgets/platform.js" charset="UTF-8">
 				</script>`
 		}
-		else if(image.hostname === 'i.imgur.com' && image.href.includes('.gifv')){
+		else if(image.hostname === 'i.imgur.com' && (image.href.includes('.gifv') || image.href.includes('.mp4'))){
 			browseItem += '<video muted preload="auto" autoplay="autoplay" loop="loop" class="itemImage" controls><source src="' + image.href.replace('.gifv', '.mp4') + '" type="video/mp4"></video>';
 		}
 		else if(image.hostname === 'i.redd.it' || image.hostname === 'i.imgur.com' || image.hostname === 'www.vidble.com'){
