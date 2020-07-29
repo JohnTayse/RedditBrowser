@@ -92,7 +92,7 @@ var browser = (function(){
 				browseList += '<p class="title clamp">' + post.title + '</p>';
 				browseList += imgs[0].outerHTML;
 				browseList += '</a>'
-			} else if (!image.href.includes('/comments/')){
+			} else if (!image.href.includes('/comments/') || post.description.includes('imgur.com/gallery/')){
 				browseList += '<a id="' + post.guid + '" class="item ui-bar ui-bar-a">'
 				browseList += '<p class="title clamp">' + post.title + '</p>';
 				browseList += '</a>'
@@ -164,7 +164,18 @@ var browser = (function(){
 		}
 		browseItem += '</br>'
 	
-		if(image === undefined || image.href.includes('/comments/')){
+		if(item.description.includes('imgur.com/gallery/')){
+			var link = links.find(function(ele){return ele.innerText.indexOf('imgur.com/gallery/') > -1})
+			var url = link.href.split('/');
+			var imgurid = url[url.length - 1];
+
+			if(link.href.includes('/a/') || link.href.includes('/gallery/')){
+				browseItem += '<blockquote class="imgur-embed-pub" lang="en" data-id="a/' + imgurid + '"><a href="//imgur.com/a/' + imgurid + '">' + item.title + '</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>';
+			}
+			else{
+				browseItem += '<blockquote class="imgur-embed-pub" lang="en" data-id="' + imgurid + '"><a href="//imgur.com/' + imgurid + '">' + item.title + '</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>';
+			}
+		} else if(image === undefined || image.href.includes('/comments/')){
 			if(isNavBack){
 				var guid = subredditList[index - 1].guid;
 				browser.displayItem(subreddit, subredditList, sort, guid, true);
@@ -187,10 +198,18 @@ var browser = (function(){
 			}
 			return;
 		}
+		else if(image.hostname === 'www.reddit.com'){
+			//browseItem += '<video muted preload="auto" autoplay="autoplay" loop="loop" class="itemImage" controls><source src="' + image.href + '/HLSPlaylist.m3u8" type="application/vnd.apple.mpegURL"></video>';
+			browseItem += `<blockquote class="reddit-card" data-card-created="1595353215">
+				<a href="`+ image.href + `?ref_source=embed">` + item.title + `</a>
+				</blockquote>
+				<script async src="//embed.redditmedia.com/widgets/platform.js" charset="UTF-8">
+				</script>`
+		}
 		else if(image.hostname === 'v.redd.it'){
 			//browseItem += '<video muted preload="auto" autoplay="autoplay" loop="loop" class="itemImage" controls><source src="' + image.href + '/HLSPlaylist.m3u8" type="application/vnd.apple.mpegURL"></video>';
 			browseItem += `<blockquote class="reddit-card" data-card-created="1595353215">
-				<a href="`+ item.link + `">` + item.title + `</a>
+				<a href="`+ item.link + `?ref_source=embed">` + item.title + `</a>
 				</blockquote>
 				<script async src="//embed.redditmedia.com/widgets/platform.js" charset="UTF-8">
 				</script>`
@@ -203,7 +222,7 @@ var browser = (function(){
 		}
 		else if(image.hostname === 'imgur.com'){
 			var url = image.href.split('/');
-			var imgurid = url[url.length - 1];
+			var imgurid = url[url.length - 1].split('.')[0];
 			
 			if(image.href.includes('/a/')){
 				browseItem += '<blockquote class="imgur-embed-pub" lang="en" data-id="a/' + imgurid + '"><a href="//imgur.com/a/' + imgurid + '">' + item.title + '</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>';
@@ -225,6 +244,12 @@ var browser = (function(){
 			}
 			if(image.hostname.includes('gifs.com')){
 				source = source.replace('/watch/', '/ifr/');
+			}
+			if(image.hostname === 'www.youtube.com'){
+				var url = source.split('?');
+				var videoid = url[url.length - 1].split('&').find(x => x.includes('v=')).split('=')[1];
+
+				source = 'https://www.youtube.com/embed/' + videoid;
 			}
 	
 			browseItem += '<iframe class="itemImage" height="512" width="100%" src="' + source + '" allowfullscreen="true" style="width: 100%; margin: 0px auto;"></iframe>';
