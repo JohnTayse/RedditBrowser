@@ -150,7 +150,7 @@ var browser = (function(){
 		
 		browseItem += '<p class="title">' + item.title + '<br/>';
 		browseItem += '<a href="' + source + '" target="_blank">(source)</a>&nbsp;';
-		if(subreddit.indexOf('u/') === -1){
+		if(subreddit.indexOf('u/') === -1 && item.author !== null){
 			browseItem += '<a href="#/user/' + item.author.replace('/u/', '') + '" target="_blank">(user)</a>&nbsp;';
 		}
 		if(r !== undefined){
