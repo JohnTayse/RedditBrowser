@@ -236,18 +236,24 @@ var browser = (function(){
 			if(image.hostname === 'gfycat.com'){
 				source = source.replace('gfycat.com/', 'gfycat.com/ifr/');
 			}
-			if(image.hostname.includes('hub.com')){
+			else if(image.hostname.includes('hub.com')){
 				source = source.replace('hub.com/', 'hub.com/embed/')
 				var search = image.search.substring(1).split('&')
 				var viewkey = search.find(x => x.includes('viewkey')).split('=')[1];
 				source = source.substring(0, source.indexOf('embed/')) + 'embed/' + viewkey;
 			}
-			if(image.hostname.includes('gifs.com')){
+			else if(image.hostname.includes('gifs.com')){
 				source = source.replace('/watch/', '/ifr/');
 			}
-			if(image.hostname === 'www.youtube.com'){
+			else if(image.hostname === 'www.youtube.com'){
 				var url = source.split('?');
 				var videoid = url[url.length - 1].split('&').find(x => x.includes('v=')).split('=')[1];
+
+				source = 'https://www.youtube.com/embed/' + videoid;
+			}
+			else if(image.hostname === 'youtu.be'){
+				var url = source.split('/');
+				var videoid = url[url.length - 1];
 
 				source = 'https://www.youtube.com/embed/' + videoid;
 			}
