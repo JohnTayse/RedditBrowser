@@ -167,6 +167,7 @@ var browser = (function(){
 		if(item.description.includes('imgur.com/gallery/')){
 			var link = links.find(function(ele){return ele.innerText.indexOf('imgur.com/gallery/') > -1})
 			var url = link.href.split('/');
+			url = url.filter(x => x !== "");
 			var imgurid = url[url.length - 1];
 
 			if(link.href.includes('/a/') || link.href.includes('/gallery/')){
@@ -217,11 +218,15 @@ var browser = (function(){
 		else if(image.hostname === 'i.imgur.com' && (image.href.includes('.gifv') || image.href.includes('.mp4'))){
 			browseItem += '<video muted preload="auto" autoplay="autoplay" loop="loop" class="itemImage" controls><source src="' + image.href.replace('.gifv', '.mp4') + '" type="video/mp4"></video>';
 		}
+		else if(image.hostname === 'www.vidble.com' && image.href.includes('/show/')){
+			browseItem += '<img class="itemImage" src="' + image.href.replace('/show/', '/') + '.jpg"/>';
+		}
 		else if(image.hostname === 'i.redd.it' || image.hostname === 'i.imgur.com' || image.hostname === 'www.vidble.com'){
 			browseItem += '<img class="itemImage" src="' + image.href + '"/>';
 		}
 		else if(image.hostname === 'imgur.com'){
 			var url = image.href.split('/');
+			url = url.filter(x => x !== "");
 			var imgurid = url[url.length - 1].split('.')[0];
 			
 			if(image.href.includes('/a/')){
@@ -230,6 +235,19 @@ var browser = (function(){
 			else{
 				browseItem += '<blockquote class="imgur-embed-pub" lang="en" data-id="' + imgurid + '"><a href="' + image.href + '">' + item.title + '</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>';
 			}
+		}
+		else if(image.hostname === 'www.flickr.com'){
+			var imgs = $(content).find('img');
+			var source = '';
+			if(imgs.length > 0){
+				source = imgs[0].outerHTML;
+			}
+			browseItem += `<a data-flickr-embed="true" data-header="true" data-context="true" href="` + image.href + `" title="` + item.title + `" target="_blank">
+				Flickr - ` + item.title + `<br/>
+				` + source + `
+				</a>
+				<script async src="//embedr.flickr.com/assets/client-code.js" charset="utf-8">
+				</script>`;
 		}
 		else{
 			var source = image.href;
@@ -253,6 +271,7 @@ var browser = (function(){
 			}
 			else if(image.hostname === 'youtu.be'){
 				var url = source.split('/');
+				url = url.filter(x => x !== "");
 				var videoid = url[url.length - 1];
 
 				source = 'https://www.youtube.com/embed/' + videoid;
