@@ -218,10 +218,26 @@ var browser = (function(){
 		else if(image.hostname === 'i.imgur.com' && (image.href.includes('.gifv') || image.href.includes('.mp4'))){
 			browseItem += '<video muted preload="auto" autoplay="autoplay" loop="loop" class="itemImage" controls><source src="' + image.href.replace('.gifv', '.mp4') + '" type="video/mp4"></video>';
 		}
-		else if(image.hostname === 'www.vidble.com' && image.href.includes('/show/')){
-			browseItem += '<img class="itemImage" src="' + image.href.replace('/show/', '/') + '.jpg"/>';
+		else if(image.hostname === 'www.vidble.com'){
+			if(image.href.includes('/show/')){
+				browseItem += '<img class="itemImage" src="' + image.href.replace('/show/', '/') + '.png"/>';
+			}
+			else if (image.href.includes('/album/')){
+				var imgs = $(content).find('img');
+				var source = '';
+				if(imgs.length > 0){
+					source = imgs[0].outerHTML;
+				}
+				browseItem += `<a href="` + image.href + `" title="` + item.title + `" target="_blank">
+				Vidble - ` + item.title + `<br/>
+				` + source + `
+				</a>`;
+			}
+			else{
+				browseItem += '<img class="itemImage" src="' + image.href + '"/>';
+			}
 		}
-		else if(image.hostname === 'i.redd.it' || image.hostname === 'i.imgur.com' || image.hostname === 'www.vidble.com'){
+		else if(image.hostname === 'i.redd.it' || image.hostname === 'i.imgur.com'){
 			browseItem += '<img class="itemImage" src="' + image.href + '"/>';
 		}
 		else if(image.hostname === 'imgur.com'){
