@@ -151,7 +151,8 @@ var browser = (function(){
 		browseItem += '<p class="title">' + item.title + '<br/>';
 		browseItem += '<a href="' + source + '" target="_blank">(source)</a>&nbsp;';
 		if(subreddit.indexOf('u/') === -1 && item.author !== null){
-			browseItem += '<a href="#/user/' + item.author.replace('/u/', '') + '" target="_blank">(user)</a>&nbsp;';
+			var user = item.author.replace('/u/', '')
+			browseItem += '<a href="#/user/' + user + '" target="_blank">(' + user + ')</a>&nbsp;';
 		}
 		if(r !== undefined){
 			var sub = r.innerText.trim().replace('r/', '');
@@ -165,7 +166,7 @@ var browser = (function(){
 		browseItem += '</br>'
 	
 		if(item.description.includes('imgur.com/gallery/')){
-			var link = links.find(function(ele){return ele.innerText.indexOf('imgur.com/gallery/') > -1})
+			var link = links.find(function(ele){return ele.innerText.indexOf('imgur.com/gallery/') > -1}) || image
 			var url = link.href.split('/');
 			url = url.filter(x => x !== "");
 			var imgurid = url[url.length - 1];
@@ -232,6 +233,12 @@ var browser = (function(){
 				Vidble - ` + item.title + `<br/>
 				` + source + `
 				</a>`;
+			}
+			else if (image.href.includes('/watch?')){
+				var url = image.href.split('=');
+				url = url.filter(x => x !== "");
+				var videoid = url[url.length - 1];
+				browseItem += '<video muted preload="auto" autoplay="autoplay" loop="loop" class="itemImage" controls><source src="' + image.href.replace('watch?v=', '') + '.mp4" type="video/mp4"></video>';
 			}
 			else{
 				browseItem += '<img class="itemImage" src="' + image.href + '"/>';
