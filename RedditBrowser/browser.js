@@ -365,7 +365,7 @@ var browser = (function(){
 
 	methods.addFavorite = function(subreddit){
 		var favorites = this.getFavorites();
-		if(favorites.indexOf(subreddit) === -1)
+		if(favorites.indexOf(subreddit) === -1 && subreddit !== '')
 		{
 			favorites.push(subreddit);
 			favorites.sort();
