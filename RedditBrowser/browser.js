@@ -405,7 +405,7 @@ var browser = (function(){
 
 	methods.isFavorite = function(subreddit){
 		var favorites = this.getFavorites();
-		return favorites.find(function(ele){return ele === subreddit})
+		return favorites.find(function(ele){return ele === subreddit.toLowerCase()})
 	}
 
 	methods.removeFavorite = function(subreddit){
