@@ -63,6 +63,7 @@ var browser = (function(){
 		$('#subredditButton').remove();
 
 		var browseList = '<section id="browseList" class="ui-grid-c">';
+		browseList = '<span id="top"></span>';
 		var isFavorite = browser.isFavorite(id);
 		if(isFavorite !== undefined){
 			browseList += '<button id="favoriteButton" onclick="browser.removeFavorite(\'' + id + '\')" class="ui-btn ui-corner-all ui-btn-inline">' + id + ' &#9733</button>';
@@ -80,7 +81,9 @@ var browser = (function(){
 		browseList += '<option value="month">Top This Month</option>';
 		browseList += '<option value="year">Top This Year</option>';
 		browseList += '<option value="all">Top All Time</option>';
-		browseList += '</select><br/>';
+		browseList += '</select>';
+		browseList += '<button id="navend" onclick="document.getElementById(\'end\').scrollIntoView()" class="ui-btn ui-corner-all ui-btn-inline">End</button>';
+		browseList += '<br/>';
 
 		list.forEach(post => {
 			var content = $.parseHTML(post.description);
@@ -99,6 +102,8 @@ var browser = (function(){
 		 	}
 		})
 		browseList += '<br/><a href="#" id="nextButton" class="ui-btn ui-corner-all ui-btn-inline">Next</a>';
+		browseList += '<span id="end"></span>';
+		browseList += '<button id="navtop" onclick="document.getElementById(\'top\').scrollIntoView()" class="ui-btn ui-corner-all ui-btn-inline">Top</button>';
 		browseList += '</section>'
 		$('#app').html(browseList).trigger('create');
 
@@ -152,11 +157,20 @@ var browser = (function(){
 		browseItem += '<a href="' + source + '" target="_blank">(source)</a>&nbsp;';
 		if(subreddit.indexOf('u/') === -1 && item.author !== null){
 			var user = item.author.replace('/u/', '')
-			browseItem += '<a href="#/user/' + user + '" target="_blank">(' + user + ')</a>&nbsp;';
+			browseItem += '<a href="#/user/' + user + '" target="_blank">(' + user + ')</a>';
+			var usr = 'u/' + user;
+			if(browser.isFavorite(usr)){
+				browseItem += '&#9733';
+			}
+			browseItem += '&nbsp;';
 		}
 		if(r !== undefined){
 			var sub = r.innerText.trim().replace('r/', '');
-			browseItem += '<a href="#/subreddit/' + sub + '" target="_blank">(' + sub + ')</a>&nbsp;';
+			browseItem += '<a href="#/subreddit/' + sub + '" target="_blank">(' + sub + ')</a>';
+			if(browser.isFavorite(sub)){
+				browseItem += '&#9733';
+			}
+			browseItem += '&nbsp;';
 		}
 		browseItem += '' + postAge + '</p>';
 		browseItem += '<a href="#" id="nextItem" class="ui-btn ui-corner-all ui-btn-inline">Next</a>';

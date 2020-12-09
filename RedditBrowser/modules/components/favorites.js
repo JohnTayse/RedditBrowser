@@ -7,6 +7,13 @@ function importFavorites(){
 	FavoritesComponent.render();
 }
 
+function removeFavorite(row){
+	var favorite = row.getAttribute('fav');
+	browser.removeFavorite(favorite);
+
+	FavoritesComponent.render();
+}
+
 const FavoritesComponent = {
 	render: () => {
 		var favorites = browser.getFavorites();
@@ -14,21 +21,22 @@ const FavoritesComponent = {
 		var subredditFavs = favorites.filter(x => x.substring(0, 2) !== 'u/');
 		var userFavs = favorites.filter(x => x.substring(0, 2) === 'u/');
 		subredditFavs.forEach(subreddit =>
-			favoritesHtml += '' + subreddit + '</br>'
+			favoritesHtml += '<p>' + subreddit + '&nbsp;<button fav="' + subreddit + '" class="remove ui-btn ui-btn-corner-all ui-btn-inline">X</button></p>'
 		)
 		userFavs.forEach(user =>
-			favoritesHtml += '' + user + '</br>'
+			favoritesHtml += '<p>' + user + '&nbsp;<button fav="' + user + '" class="remove ui-btn ui-btn-corner-all ui-btn-inline">X</button></p>'
 		)
 
 		var section = `
 			<div id="favorites">
 				<textarea placeholder="favorites for import" id="favoritesInput" style="color:black;"></textarea>
 				<button id="importButton" class="ui-btn ui-btn-corner-all ui-btn-inline">Import</button>
-				<p>` + favoritesHtml + `</p>
+				` + favoritesHtml + `
 			</div>
 		`;
 		$('#app').html(section).trigger('create');
 		$('#importButton').click(function(){ importFavorites() });
+		$('.remove').click(function(){ removeFavorite(this) });
 	}
 } 
 
