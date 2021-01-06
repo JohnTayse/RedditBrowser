@@ -45,10 +45,10 @@ const FavoritesComponent = {
 		var subredditFavs = favorites.filter(x => x.substring(0, 2) !== 'u/');
 		var userFavs = favorites.filter(x => x.substring(0, 2) === 'u/');
 		subredditFavs.forEach(subreddit =>
-			favoritesHtml += '<p>' + subreddit + '&nbsp;<button fav="' + subreddit + '" class="remove ui-btn ui-btn-corner-all ui-btn-inline">X</button></p>'
+			favoritesHtml += '<p><button fav="' + subreddit + '" class="remove ui-btn ui-btn-corner-all ui-btn-inline">X</button>&nbsp;' + subreddit + '</p>'
 		)
 		userFavs.forEach(user =>
-			favoritesHtml += '<p>' + user + '&nbsp;<button fav="' + user + '" class="remove ui-btn ui-btn-corner-all ui-btn-inline">X</button></p>'
+			favoritesHtml += '<p><button fav="' + user + '" class="remove ui-btn ui-btn-corner-all ui-btn-inline">X</button>&nbsp;' + user + '</p>'
 		)
 
 		var section = `

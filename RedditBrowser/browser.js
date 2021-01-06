@@ -34,9 +34,15 @@ var browser = (function(){
 
 	methods.getSubredditList = async function(url, id){
 		$.mobile.loading('show');
-		var feed = await feednami.load(url)
-		var entries = browser.cleanList(feed.entries, id);
-		return entries;
+		try{
+			var feed = await feednami.load(url)
+			var entries = browser.cleanList(feed.entries, id);
+			return entries;
+		} catch (e){
+			$.mobile.loading('hide');
+			alert("This user does not exist or was deleted.")
+			window.location = '';
+		}
 	}
 	
 	methods.getNextList = async function(id, sort, guid, list){
@@ -258,10 +264,10 @@ var browser = (function(){
 				browseItem += '<img class="itemImage" src="' + image.href + '"/>';
 			}
 		}
-		else if(image.hostname === 'i.redd.it' || image.hostname === 'i.imgur.com'){
+		else if(image.hostname === 'i.redd.it' || (image.hostname === 'i.imgur.com' && !image.href.includes('/a/'))){
 			browseItem += '<img class="itemImage" src="' + image.href + '"/>';
 		}
-		else if(image.hostname === 'imgur.com'){
+		else if(image.hostname === 'imgur.com' || image.hostname === 'i.imgur.com'){
 			var url = image.href.split('/');
 			url = url.filter(x => x !== "");
 			var imgurid = url[url.length - 1].split('.')[0];
@@ -316,6 +322,17 @@ var browser = (function(){
 	
 			browseItem += '<iframe class="itemImage" height="512" width="100%" src="' + source + '" allowfullscreen="true" style="width: 100%; margin: 0px auto;"></iframe>';
 		}
+
+		var imgs = $(content).find('img');
+		var includePreview = imgs.length > 0;
+		if(includePreview){
+			browseItem += '<br/>'
+			browseItem += '<a href="#" id="thumbnail" class="ui-btn ui-corner-all ui-btn-inline">Thumbnail</a>';
+			browseItem += '<div id="preview" style="margin-top:5px;">'
+			browseItem += imgs[0].outerHTML;
+			browseItem += '</div>'
+		}
+
 		$('#app').html(browseItem).trigger('create');
 	
 		$('#subredditButton').click(function(){
@@ -345,6 +362,14 @@ var browser = (function(){
 			var guid = subredditList[index - 1].guid;
 			browser.displayItem(subreddit, subredditList, sort, guid, true);
 		})
+
+		if(includePreview){
+			$('#preview').hide();
+			$('#thumbnail').click(function(){
+				$('#thumbnail').remove();
+				$('#preview').show();
+			})
+		}
 	}
 
 	methods.getAge = function(timestamp){

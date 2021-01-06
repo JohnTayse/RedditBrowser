@@ -4,6 +4,11 @@ body {
 #idInput {
 	color: #000;
 }
+#footer {
+	font-size: 16px;
+	margin: .5em 0;
+	padding: .7em 1em;
+}
 .title{
 	color: #999;
 	background-color: #191919;
