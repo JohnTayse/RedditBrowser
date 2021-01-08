@@ -37,7 +37,7 @@ var browser = (function(){
 		try{
 			var feed = await feednami.load(url)
 			var entries = browser.cleanList(feed.entries, id);
-			return entries;
+			return browser.removeDuplicates(entries);
 		} catch (e){
 			$.mobile.loading('hide');
 			alert("This user does not exist or was deleted.")
@@ -50,19 +50,49 @@ var browser = (function(){
 		$.mobile.loading('show');
 		var feed = await feednami.load(url)
 		var entries = browser.cleanList(feed.entries, id);
-		return browser.concatList(list, entries);
-	}
-	
-	methods.getNextItemList = async function(id, sort, guid, list){
-		var url = browser.getUrl(id, sort, guid);
-		$.mobile.loading('show');
-		var feed = await feednami.load(url)
-		var entries = browser.cleanList(feed.entries, id);
-		return browser.concatList(list, entries);
+		var concatenated = browser.concatList(list, entries);
+		return browser.removeDuplicates(concatenated);
 	}
 
 	methods.cleanList = function(entries, id){
 		return entries.filter(x => x.title.toLowerCase().indexOf('/' + id + ' on') === -1);
+	}
+	
+	methods.concatList = function(currentList, newList){
+		var list = currentList.concat(newList);
+		list = list.filter((elem, index, self) => self.findIndex((t) => {return t.guid === elem.guid}) === index);
+		return list;
+	}
+
+	methods.removeDuplicates = function(list){
+		list.forEach(post => {
+			var content = $.parseHTML(post.description);
+			var links = $(content).find('a').toArray();
+			var image = links.find(function(ele){return ele.innerText === '[link]'});
+			
+			if(image !== undefined){
+				var href = image.href.split('/');
+				var file = href[href.length - 1];
+
+				post.file = file;
+			} else {
+				post.file = post.title;
+			}
+		})
+
+		var entries = list.filter((item, index, self) =>
+			index === self.findIndex((t) => (
+				t.file === item.file
+			))
+		)
+
+		entries.forEach(post =>{
+			var categoriesArray = list.filter(x => x.file === post.file).map(x => x.categories);
+			var categories = [].concat.apply([], categoriesArray);
+			post.categories = Array.from(new Set(categories));
+		})
+
+		return entries;
 	}
 
 	methods.displayList = function(id, list, sort){
@@ -107,6 +137,7 @@ var browser = (function(){
 				browseList += '</a>'
 		 	}
 		})
+
 		browseList += '<br/><a href="#" id="nextButton" class="ui-btn ui-corner-all ui-btn-inline">Next</a>';
 		browseList += '<span id="end"></span>';
 		browseList += '<button id="navtop" onclick="document.getElementById(\'top\').scrollIntoView()" class="ui-btn ui-corner-all ui-btn-inline">Top</button>';
@@ -160,7 +191,7 @@ var browser = (function(){
 		var browseItem = '';
 		
 		browseItem += '<p class="title">' + item.title + '<br/>';
-		browseItem += '<a href="' + source + '" target="_blank">(source)</a>&nbsp;';
+		browseItem += '<a href="' + source + '" style="float:left" target="_blank">(source)</a>';
 		if(subreddit.indexOf('u/') === -1 && item.author !== null){
 			var user = item.author.replace('/u/', '')
 			browseItem += '<a href="#/user/' + user + '" target="_blank">(' + user + ')</a>';
@@ -170,15 +201,20 @@ var browser = (function(){
 			}
 			browseItem += '&nbsp;';
 		}
+		browseItem += '<span style="float:left">&nbsp;' + postAge + '&nbsp;</span>';
+		browseItem += '<span style="width:50%;position:relative;float:left;overflow-x:auto;">'
 		if(r !== undefined){
-			var sub = r.innerText.trim().replace('r/', '');
-			browseItem += '<a href="#/subreddit/' + sub + '" target="_blank">(' + sub + ')</a>';
-			if(browser.isFavorite(sub)){
-				browseItem += '&#9733';
-			}
-			browseItem += '&nbsp;';
+			item.categories.forEach(sub => {
+				browseItem += '<a href="#/subreddit/' + sub + '" target="_blank">(' + sub + ')</a>';
+				if(browser.isFavorite(sub)){
+					browseItem += '&#9733';
+				}
+				browseItem += '&nbsp;';
+			})
+			
 		}
-		browseItem += '' + postAge + '</p>';
+		browseItem += '</span>';
+		browseItem += '</p>';
 		browseItem += '<a href="#" id="nextItem" class="ui-btn ui-corner-all ui-btn-inline">Next</a>';
 		if(index > 0){
 			browseItem += '<a href="#" id="backItem" class="ui-btn ui-corner-all ui-btn-inline"><</a>';
@@ -203,7 +239,7 @@ var browser = (function(){
 				browser.displayItem(subreddit, subredditList, sort, guid, true);
 			}
 			else if(index + 1 >= subredditList.length){
-				browser.getNextItemList(subreddit, sort, id, subredditList).then(list => {
+				browser.getNextList(subreddit, sort, id, subredditList).then(list => {
 					$.mobile.loading('hide');
 					var next = list[list.findIndex((el) => el.guid === id) + 1];
 					if(next !== undefined){
@@ -341,7 +377,7 @@ var browser = (function(){
 	
 		$('#nextItem').click(function(){
 			if(index + 1 >= subredditList.length){
-				browser.getNextItemList(subreddit, sort, id, subredditList).then(list => {
+				browser.getNextList(subreddit, sort, id, subredditList).then(list => {
 					$.mobile.loading('hide');
 					var next = list[list.findIndex((el) => el.guid === id) + 1];
 					if(next !== undefined){
@@ -394,12 +430,6 @@ var browser = (function(){
 			return Math.floor(days) + ' day' + (Math.floor(days) == 1 ? '' : 's')
 		}
 		return d.toLocaleDateString();
-	}
-	
-	methods.concatList = function(currentList, newList){
-		var list = currentList.concat(newList);
-		list = list.filter((elem, index, self) => self.findIndex((t) => {return t.guid === elem.guid}) === index);
-		return list;
 	}
 
 	methods.addFavorite = function(subreddit){
