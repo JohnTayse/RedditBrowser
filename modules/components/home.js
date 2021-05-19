@@ -33,6 +33,12 @@ const HomeComponent = {
 		`;
 		$('#app').html(section).trigger('create');
 		$('#browseButton').click(function(){ browse() });
+		
+		$(document).on('keypress',function(e) {
+			if(e.which == 13) {
+				browse();
+			}
+		});
 	}
 } 
 

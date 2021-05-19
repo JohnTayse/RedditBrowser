@@ -129,7 +129,11 @@ var browser = (function(){
 			if(imgs.length > 0){
 				browseList += '<a id="' + post.guid + '" class="item ui-bar ui-bar-a">'
 				browseList += '<p class="title clamp">' + post.title + '</p>';
-				browseList += imgs[0].outerHTML;
+				var imageSpan = imgs[0].outerHTML;
+				if(imageSpan.indexOf('width=') !== -1){
+					imageSpan = imageSpan.replace(/<img/gm, '<img style="max-height:92%;"');
+				}
+				browseList += imageSpan
 				browseList += '</a>'
 			} else if (!image.href.includes('/comments/') || post.description.includes('imgur.com/gallery/')){
 				browseList += '<a id="' + post.guid + '" class="item ui-bar ui-bar-a">'
@@ -220,6 +224,10 @@ var browser = (function(){
 			browseItem += '<a href="#" id="backItem" class="ui-btn ui-corner-all ui-btn-inline"><</a>';
 		}
 		browseItem += '</br>'
+
+		var audioMuted = browser.getAudioMuted();
+		var muted = audioMuted ? 'muted' : '';
+		var isIFrame = false;
 	
 		if(item.description.includes('imgur.com/gallery/')){
 			var link = links.find(function(ele){return ele.innerText.indexOf('imgur.com/gallery/') > -1}) || image
@@ -273,7 +281,7 @@ var browser = (function(){
 				</script>`
 		}
 		else if(image.hostname === 'i.imgur.com' && (image.href.includes('.gifv') || image.href.includes('.mp4'))){
-			browseItem += '<video muted preload="auto" autoplay="autoplay" loop="loop" class="itemImage" controls><source src="' + image.href.replace('.gifv', '.mp4') + '" type="video/mp4"></video>';
+			browseItem += '<video ' + muted + ' preload="auto" autoplay="autoplay" loop="loop" class="itemImage" controls><source src="' + image.href.replace('.gifv', '.mp4') + '" type="video/mp4"></video>';
 		}
 		else if(image.hostname === 'www.vidble.com'){
 			if(image.href.includes('/show/')){
@@ -294,7 +302,7 @@ var browser = (function(){
 				var url = image.href.split('=');
 				url = url.filter(x => x !== "");
 				var videoid = url[url.length - 1];
-				browseItem += '<video muted preload="auto" autoplay="autoplay" loop="loop" class="itemImage" controls><source src="' + image.href.replace('watch?v=', '') + '.mp4" type="video/mp4"></video>';
+				browseItem += '<video ' + muted + ' preload="auto" autoplay="autoplay" loop="loop" class="itemImage" controls><source src="' + image.href.replace('watch?v=', '') + '.mp4" type="video/mp4"></video>';
 			}
 			else{
 				browseItem += '<img class="itemImage" src="' + image.href + '"/>';
@@ -329,6 +337,7 @@ var browser = (function(){
 				</script>`;
 		}
 		else{
+			isIFrame = true;
 			var source = image.href;
 			if(image.hostname === 'gfycat.com'){
 				source = source.replace('gfycat.com/', 'gfycat.com/ifr/');
@@ -355,7 +364,7 @@ var browser = (function(){
 
 				source = 'https://www.youtube.com/embed/' + videoid;
 			}
-	
+			
 			browseItem += '<iframe class="itemImage" height="512" width="100%" src="' + source + '" allowfullscreen="true" style="width: 100%; margin: 0px auto;"></iframe>';
 		}
 
@@ -473,6 +482,33 @@ var browser = (function(){
 	
 		$('#favoriteButton').html(subreddit + ' &#9734');
 		$('#favoriteButton').attr('onclick', 'browser.addFavorite(\'' + subreddit + '\')');
+	}
+
+	methods.setAudioMuted = function(audioMuted){
+		if (typeof (Storage) !== "undefined") {
+			localStorage.setItem("audioMuted", audioMuted);
+
+			if(audioMuted){
+				$('#audioMutedButton').html('&#128263;')
+			}
+			else{
+				$('#audioMutedButton').html('&#128266;')
+			}
+		}
+		else
+		{
+			$('#audioMutedButton').remove();
+		}
+	}
+
+	methods.getAudioMuted = function(){
+		if (typeof (Storage) !== "undefined") {
+			if(localStorage.getItem("audioMuted") !== null){
+				var audioMuted = localStorage.getItem("audioMuted")
+				return audioMuted == 'true';
+			}
+			return true;
+		}
 	}
 
 	return methods;
