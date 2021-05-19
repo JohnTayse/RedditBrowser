@@ -33,6 +33,9 @@ const HomeComponent = {
 		`;
 		$('#app').html(section).trigger('create');
 		$('#browseButton').click(function(){ browse() });
+
+		$('#favoritesButton').show();
+		$('#audioMutedButton').show();
 		
 		$(document).on('keypress',function(e) {
 			if(e.which == 13) {

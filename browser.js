@@ -96,6 +96,8 @@ var browser = (function(){
 	}
 
 	methods.displayList = function(id, list, sort){
+		$('#audioMutedButton').show();
+
 		$('#subredditButton').remove();
 
 		var browseList = '<section id="browseList" class="ui-grid-c">';
@@ -176,6 +178,8 @@ var browser = (function(){
 	}
 
 	methods.displayItem = function(subreddit, subredditList, sort, id, isNavBack){
+		$('#audioMutedButton').hide();
+
 		var index = -1;
 		var item = subredditList.find(function(ele, i){
 			index = i;

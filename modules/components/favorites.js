@@ -28,6 +28,9 @@ function exportFavorites(){
 	$('#importButton').hide();
 	$('#exportButton').hide();
 
+	$('#favoritesButton').hide();
+	$('#audioMutedButton').show();
+
 	$('#clearButton').click(function(){ FavoritesComponent.render() });
 }
 

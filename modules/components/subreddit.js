@@ -4,6 +4,9 @@ const SubredditComponent = {
 		browser.getSubredditList(url, id).then(list => {
 			browser.displayList(id, list, sort)
 		});
+
+		$('#favoritesButton').hide();
+		$('#audioMutedButton').show();
 	}
 } 
 
