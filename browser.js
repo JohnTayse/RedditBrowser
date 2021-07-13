@@ -368,6 +368,8 @@ var browser = (function(){
 
 				source = 'https://www.youtube.com/embed/' + videoid;
 			}
+
+			source = source.replace('http://', 'https://');
 			
 			browseItem += '<iframe class="itemImage" height="512" width="100%" src="' + source + '" allowfullscreen="true" style="width: 100%; margin: 0px auto;"></iframe>';
 		}
