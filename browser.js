@@ -224,10 +224,13 @@ var browser = (function(){
 			browseItem += txt.value;
 			browseItem += '</div>'
 		}
+		else if(item.url.includes('gifs.com')){
+			browseItem += '<iframe class="itemImage" height="512" width="100%" src="' + item.url + '" allowfullscreen="true" style="width: 100%; margin: 0px auto;"></iframe>';
+		}
 		/*else if (item.post_hint == 'image') {
 			itemType = "FullImage";
-
-		}*/	
+			
+		}*/
 		else if (item.post_hint == 'link') {
 			itemType = "CompactLink";
 			browseItem += '<div id="linkPost" class="post">';
