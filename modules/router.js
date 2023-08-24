@@ -7,7 +7,7 @@ import { FavoritesComponent } from './components/favorites.js';
 
 const routes = [
 	{ path: '/', component: HomeComponent, },
-	{ path: '/subreddit/:subreddit', component: SubredditComponent, },
+	{ path: '/r/:subreddit', component: SubredditComponent, },
 	{ path: '/user/:user', component: UserComponent, },
 	{ path: '/favorites', component: FavoritesComponent, }
 ];

@@ -1,12 +1,24 @@
-const SubredditComponent = {
-	render: (id, sort) => {
-		var url = browser.getUrl(id);
-		browser.getSubredditList(url, id).then(list => {
-			browser.displayList(id, list, sort)
-		});
+var posts = [];
+var after = '';
 
-		$('#favoritesButton').hide();
-		$('#audioMutedButton').show();
+async function setup(id){
+	var sort = 'hot';
+	var url = browser.getUrl(id, sort);
+	let response = await browser.getSubmissions(url);
+	if (!response) return;
+
+	posts = response.posts;
+	after = response.after;
+
+	browser.displayList(id, sort, posts, after);
+
+	$('#favoritesButton').hide();
+	$('#audioMutedButton').show();
+}
+
+const SubredditComponent = {
+	render: (id) => {
+		setup(id);
 	}
 } 
 

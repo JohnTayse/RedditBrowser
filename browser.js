@@ -1,11 +1,14 @@
 var browser = (function(){
 	'use strict';
 
+	var host = 'https://www.reddit.com';
+
 	var methods = {};
 
 	methods.getUrl = function(id, sort, guid){
+		$.mobile.loading('show');
 		var reddit = '';
-		if(id.indexOf('u/') > -1){
+		if(id.indexOf('user/') > -1){
 			reddit = id
 		}
 		else
@@ -13,89 +16,50 @@ var browser = (function(){
 			reddit = 'r/' + id
 		}
 	
-		var baseUrl = 'https://www.reddit.com/' + reddit + '/';
-		var simpleSorts = ['hot', 'new', 'top'];
+		var baseUrl = host + '/' + reddit + '/';
+		var simpleSorts = ['hot', 'new', 'submitted'];
+		var params = {
+			limit: 25,
+			include_over_18: true,
+		}
+		var options = {};
+
 		if(sort === undefined){
-			baseUrl += '.rss';
+			baseUrl += '.json';
 		}
 		else if(simpleSorts.includes(sort)){
-			baseUrl += sort + '/.rss'
+			baseUrl += sort + '/.json'
 		}
 		else{
-			baseUrl += 'top/.rss?t=' + sort;
+			baseUrl += 'top/.json';
+			options['t'] = sort;
 		}
 	
 		if(guid !== undefined){
-			baseUrl += (baseUrl.includes('?') ? '&' : '?') + 'after=' + guid;
+			options['after'] = guid;
 		}
+
+		baseUrl = baseUrl + '?' + new URLSearchParams(Object.assign(params, options))
 	
 		return baseUrl;
 	}
 
-	methods.getSubredditList = async function(url, id){
-		$.mobile.loading('show');
-		try{
-			var feed = await feednami.load(url)
-			var entries = browser.cleanList(feed.entries, id);
-			return browser.removeDuplicates(entries);
-		} catch (e){
-			$.mobile.loading('hide');
-			alert("This user does not exist or was deleted.")
-			window.location = '';
-		}
-	}
-	
-	methods.getNextList = async function(id, sort, guid, list){
-		var url = browser.getUrl(id, sort, guid);
-		$.mobile.loading('show');
-		var feed = await feednami.load(url)
-		var entries = browser.cleanList(feed.entries, id);
-		var concatenated = browser.concatList(list, entries);
-		return browser.removeDuplicates(concatenated);
+	methods.getSubmissions = async function(url) {
+		return await fetch(url)
+			.then(res => res.json())
+			.then(json => json.data)
+			.then(data => ({
+				after: data.after,
+				posts: data.children
+			}))
+			.catch(err => {
+				$.mobile.loading('hide');
+				alert("This page does not exist or was deleted.")
+				window.location = '';
+			});
 	}
 
-	methods.cleanList = function(entries, id){
-		return entries.filter(x => x.title.toLowerCase().indexOf('/' + id + ' on') === -1);
-	}
-	
-	methods.concatList = function(currentList, newList){
-		var list = currentList.concat(newList);
-		list = list.filter((elem, index, self) => self.findIndex((t) => {return t.guid === elem.guid}) === index);
-		return list;
-	}
-
-	methods.removeDuplicates = function(list){
-		list.forEach(post => {
-			var content = $.parseHTML(post.description);
-			var links = $(content).find('a').toArray();
-			var image = links.find(function(ele){return ele.innerText === '[link]'});
-			
-			if(image !== undefined){
-				var href = image.href.split('/');
-				var file = href[href.length - 1];
-
-				post.file = file;
-			} else {
-				post.file = post.title;
-			}
-		})
-
-		var entries = list.filter((item, index, self) =>
-			index === self.findIndex((t) => (
-				t.file === item.file
-			))
-		)
-
-		entries.forEach(post =>{
-			var categoriesArray = list.filter(x => x.file === post.file).map(x => x.categories);
-			var categories = [].concat.apply([], categoriesArray);
-			post.categories = Array.from(new Set(categories));
-		})
-
-		return entries;
-	}
-
-	methods.displayList = function(id, list, sort){
+	methods.displayList = function(id, sort, posts, after){
 		$('#audioMutedButton').show();
 
 		$('#subredditButton').remove();
@@ -114,7 +78,11 @@ var browser = (function(){
 		browseList += '<select name="sortSelect" id="sortSelect" data-mini="true" data-inline="true">';
 		browseList += '<option value="hot">Hot</option>';
 		browseList += '<option value="new">New</option>';
-		browseList += '<option value="top">Top Today</option>';
+		if(id.indexOf('user/') > -1){
+			browseList += '<option value="submitted">Submitted</option>';
+		}
+		browseList += '<option value="hour">Top Now</option>';
+		browseList += '<option value="day">Top Today</option>';
 		browseList += '<option value="week">Top This Week</option>';
 		browseList += '<option value="month">Top This Month</option>';
 		browseList += '<option value="year">Top This Year</option>';
@@ -123,25 +91,18 @@ var browser = (function(){
 		browseList += '<button id="navend" onclick="document.getElementById(\'end\').scrollIntoView()" class="ui-btn ui-corner-all ui-btn-inline">End</button>';
 		browseList += '<br/>';
 
-		list.forEach(post => {
-			var content = $.parseHTML(post.description);
-			var imgs = $(content).find('img');
-			var links = $(content).find('a').toArray();
-			var image = links.find(function(ele){return ele.innerText === '[link]'});
-			if(imgs.length > 0){
-				browseList += '<a id="' + post.guid + '" class="item ui-bar ui-bar-a">'
-				browseList += '<p class="title clamp">' + post.title + '</p>';
-				var imageSpan = imgs[0].outerHTML;
-				if(imageSpan.indexOf('width=') !== -1){
-					imageSpan = imageSpan.replace(/<img/gm, '<img style="max-height:92%;"');
-				}
-				browseList += imageSpan
-				browseList += '</a>'
-			} else if (!image.href.includes('/comments/') || post.description.includes('imgur.com/gallery/')){
-				browseList += '<a id="' + post.guid + '" class="item ui-bar ui-bar-a">'
-				browseList += '<p class="title clamp">' + post.title + '</p>';
-				browseList += '</a>'
-		 	}
+		posts.forEach(post => {
+			if(post.data.preview != undefined || post.data.gallery_data != undefined){
+				browseList += '<a id="' + post.data.name + '" class="item ui-bar ui-bar-a">';
+				browseList += '<p class="title clamp">' + post.data.title + '</p>';
+				browseList += '<img src="' + post.data.thumbnail + '"/>';
+				browseList += '</a>';
+			}
+			else{
+				browseList += '<a id="' + post.data.name + '" class="item ui-bar ui-bar-a">';
+				browseList += '<p class="title clamp">' + post.data.title + '</p>';
+				browseList += '</a>';
+			}
 		})
 
 		browseList += '<br/><a href="#" id="nextButton" class="ui-btn ui-corner-all ui-btn-inline">Next</a>';
@@ -161,49 +122,49 @@ var browser = (function(){
 		$('#sortSelect').on('change', function(){
 			var sortSelected = $('#sortSelect').val();
 			var url = browser.getUrl(id, sortSelected);
-			browser.getSubredditList(url, id).then(list => {
-				browser.displayList(id, list, sortSelected)
-			});
+			browser.getSubmissions(url)
+				.then((data) => {
+					browser.displayList(id, sortSelected, data.posts, data.after);
+				})
 		})
 
 		$('#nextButton').click(function(){
-			var guid = list[list.length - 1].guid;
-			browser.getNextList(id, sort, guid, list).then(list => {
-				browser.displayList(id, list, sort)
-			});
+			var url = browser.getUrl(id, sort, after);
+			browser.getSubmissions(url)
+				.then((data) => {
+					var concatenated = posts.concat(data.posts);
+					var last = concatenated[concatenated.length - 1].data.name
+					browser.displayList(id, sort, concatenated, last);
+				})
 		})
+		
 		$('.item').click(function(){
-			browser.displayItem(id, list, sort, this.id);
+			browser.displayItem(id, sort, posts, this.id, after);
 		})
 	}
 
-	methods.displayItem = function(subreddit, subredditList, sort, id, isNavBack){
+	methods.displayItem = function(id, sort, list, selected, after){
 		$('#audioMutedButton').hide();
 
 		var index = -1;
-		var item = subredditList.find(function(ele, i){
+		var item = list.find(function(ele, i){
 			index = i;
-			return ele.guid == id;
-		});
-		var content = $.parseHTML(item.description);
-		var links = $(content).find('a').toArray();
-		var image = links.find(function(ele){return ele.innerText === '[link]'});
-		var source = links.find(function(ele){return ele.innerText === '[comments]'});
-		var r = links.find(function(ele){return ele.innerText.indexOf('r/') > -1});
-	
+			return ele.data.name == selected;
+		}).data;
+
 		$('#subredditButton').remove();
-		$('#header').append('<a href="#" id="subredditButton" class="ui-btn ui-corner-all ui-btn-inline">' + subreddit + '</a>').trigger('create');
+		$('#header').append('<a href="#" id="subredditButton" class="ui-btn ui-corner-all ui-btn-inline">' + id + '</a>').trigger('create');
 	
-		var postAge = browser.getAge(item.date);
+		var postAge = browser.getAge(item.created);
 	
 		var browseItem = '';
 		
-		browseItem += '<p class="title">' + item.title + '<br/>';
-		browseItem += '<a href="' + source + '" style="float:left" target="_blank">(source)</a>';
-		if(subreddit.indexOf('u/') === -1 && item.author !== null){
-			var user = item.author.replace('/u/', '')
+		browseItem += '<p class="title"><span id="itemTitle">' + item.title + '</span><br/>';
+		browseItem += '<a href="' + host + item.permalink + '" style="float:left" target="_blank">(source)</a>';
+		if(id.indexOf('user/') === -1 && item.author !== null){
+			var user = item.author;
 			browseItem += '<a href="#/user/' + user + '" target="_blank">(' + user + ')</a>';
-			var usr = 'u/' + user;
+			var usr = 'user/' + user;
 			if(browser.isFavorite(usr)){
 				browseItem += '&#9733';
 			}
@@ -211,220 +172,132 @@ var browser = (function(){
 		}
 		browseItem += '<span style="float:left">&nbsp;' + postAge + '&nbsp;</span>';
 		browseItem += '<span style="width:50%;position:relative;float:left;overflow-x:auto;">'
-		if(r !== undefined){
-			item.categories.forEach(sub => {
-				browseItem += '<a href="#/subreddit/' + sub + '" target="_blank">(' + sub + ')</a>';
-				if(browser.isFavorite(sub)){
-					browseItem += '&#9733';
-				}
-				browseItem += '&nbsp;';
-			})
-			
+		if(item.subreddit !== undefined && !item.subreddit.includes('u_') && item.subreddit.toUpperCase() != id.toUpperCase()){
+			var sub = item.subreddit;
+			browseItem += '<a href="#/r/' + sub + '" target="_blank">(' + sub + ')</a>';
+			if(browser.isFavorite(sub)){
+				browseItem += '&#9733';
+			}
+			browseItem += '&nbsp;';
 		}
 		browseItem += '</span>';
 		browseItem += '</p>';
-		browseItem += '<a href="#" id="nextItem" class="ui-btn ui-corner-all ui-btn-inline">Next</a>';
+		browseItem += '<a href="#" class="nextItem ui-btn ui-corner-all ui-btn-inline">Next</a>';
 		if(index > 0){
-			browseItem += '<a href="#" id="backItem" class="ui-btn ui-corner-all ui-btn-inline"><</a>';
+			browseItem += '<a href="#" class="backItem ui-btn ui-corner-all ui-btn-inline"><</a>';
 		}
 		browseItem += '</br>'
 
 		var audioMuted = browser.getAudioMuted();
 		var muted = audioMuted ? 'muted' : '';
-		var isIFrame = false;
-	
-		if(item.description.includes('imgur.com/gallery/')){
-			var link = links.find(function(ele){return ele.innerText.indexOf('imgur.com/gallery/') > -1}) || image
-			var url = link.href.split('/');
-			url = url.filter(x => x !== "");
-			var imgurid = url[url.length - 1];
+		var itemType = '';
+		
+		if (item.domain == "v.redd.it" && item.secure_media) {
+			itemType = "FullVideo";
 
-			if(link.href.includes('/a/') || link.href.includes('/gallery/')){
-				browseItem += '<blockquote class="imgur-embed-pub" lang="en" data-id="a/' + imgurid + '"><a href="//imgur.com/a/' + imgurid + '">' + item.title + '</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>';
-			}
-			else{
-				browseItem += '<blockquote class="imgur-embed-pub" lang="en" data-id="' + imgurid + '"><a href="//imgur.com/' + imgurid + '">' + item.title + '</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>';
-			}
-		} else if(image === undefined || image.href.includes('/comments/')){
-			if(isNavBack){
-				var guid = subredditList[index - 1].guid;
-				browser.displayItem(subreddit, subredditList, sort, guid, true);
-			}
-			else if(index + 1 >= subredditList.length){
-				browser.getNextList(subreddit, sort, id, subredditList).then(list => {
-					$.mobile.loading('hide');
-					var next = list[list.findIndex((el) => el.guid === id) + 1];
-					if(next !== undefined){
-						var nextGuid = next.guid;
-						browser.displayItem(subreddit, list, sort, nextGuid)
-					} else {
-						$('#nextItem').remove();
-					}
-				});
-			}
-			else{
-				var guid = subredditList[index + 1].guid;
-				browser.displayItem(subreddit, subredditList, sort, guid);
-			}
-			return;
+			browseItem += `<video controls autoplay loop ` + (muted ? 'muted' : '') + ` class="itemImage">
+			<source src="` + item.secure_media.reddit_video.fallback_url + `" type="video/mp4" />
+			</video>`
 		}
-		else if(image.hostname === 'www.reddit.com'){
-			//browseItem += '<video muted preload="auto" autoplay="autoplay" loop="loop" class="itemImage" controls><source src="' + image.href + '/HLSPlaylist.m3u8" type="application/vnd.apple.mpegURL"></video>';
-			browseItem += `<blockquote class="reddit-card" data-card-created="1595353215">
-				<a href="`+ image.href + `?ref_source=embed">` + item.title + `</a>
-				</blockquote>
-				<script async src="//embed.redditmedia.com/widgets/platform.js" charset="UTF-8">
-				</script>`
-		}
-		else if(image.hostname === 'v.redd.it'){
-			//browseItem += '<video muted preload="auto" autoplay="autoplay" loop="loop" class="itemImage" controls><source src="' + image.href + '/HLSPlaylist.m3u8" type="application/vnd.apple.mpegURL"></video>';
-			browseItem += `<blockquote class="reddit-card" data-card-created="1595353215">
-				<a href="`+ item.link + `?ref_source=embed">` + item.title + `</a>
-				</blockquote>
-				<script async src="//embed.redditmedia.com/widgets/platform.js" charset="UTF-8">
-				</script>`
-		}
-		else if(image.hostname === 'i.imgur.com' && (image.href.includes('.gifv') || image.href.includes('.mp4'))){
-			browseItem += '<video ' + muted + ' preload="auto" autoplay="autoplay" loop="loop" class="itemImage" controls><source src="' + image.href.replace('.gifv', '.mp4') + '" type="video/mp4"></video>';
-		}
-		else if(image.hostname === 'www.vidble.com'){
-			if(image.href.includes('/show/')){
-				browseItem += '<img class="itemImage" src="' + image.href.replace('/show/', '/') + '.png"/>';
-			}
-			else if (image.href.includes('/album/')){
-				var imgs = $(content).find('img');
-				var source = '';
-				if(imgs.length > 0){
-					source = imgs[0].outerHTML;
-				}
-				browseItem += `<a href="` + image.href + `" title="` + item.title + `" target="_blank">
-				Vidble - ` + item.title + `<br/>
-				` + source + `
-				</a>`;
-			}
-			else if (image.href.includes('/watch?')){
-				var url = image.href.split('=');
-				url = url.filter(x => x !== "");
-				var videoid = url[url.length - 1];
-				browseItem += '<video ' + muted + ' preload="auto" autoplay="autoplay" loop="loop" class="itemImage" controls><source src="' + image.href.replace('watch?v=', '') + '.mp4" type="video/mp4"></video>';
-			}
-			else{
-				browseItem += '<img class="itemImage" src="' + image.href + '"/>';
-			}
-		}
-		else if(image.hostname === 'i.redd.it' || (image.hostname === 'i.imgur.com' && !image.href.includes('/a/'))){
-			browseItem += '<img class="itemImage" src="' + image.href + '"/>';
-		}
-		else if(image.hostname === 'imgur.com' || image.hostname === 'i.imgur.com'){
-			var url = image.href.split('/');
-			url = url.filter(x => x !== "");
-			var imgurid = url[url.length - 1].split('.')[0];
-			
-			if(image.href.includes('/a/')){
-				browseItem += '<blockquote class="imgur-embed-pub" lang="en" data-id="a/' + imgurid + '"><a href="//imgur.com/a/' + imgurid + '">' + item.title + '</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>';
-			}
-			else{
-				browseItem += '<blockquote class="imgur-embed-pub" lang="en" data-id="' + imgurid + '"><a href="' + image.href + '">' + item.title + '</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>';
-			}
-		}
-		else if(image.hostname === 'www.flickr.com'){
-			var imgs = $(content).find('img');
-			var source = '';
-			if(imgs.length > 0){
-				source = imgs[0].outerHTML;
-			}
-			browseItem += `<a data-flickr-embed="true" data-header="true" data-context="true" href="` + image.href + `" title="` + item.title + `" target="_blank">
-				Flickr - ` + item.title + `<br/>
-				` + source + `
-				</a>
-				<script async src="//embedr.flickr.com/assets/client-code.js" charset="utf-8">
-				</script>`;
-		}
-		else{
-			isIFrame = true;
-			var source = image.href;
-			if(image.hostname === 'gfycat.com'){
-				source = source.replace('gfycat.com/', 'gfycat.com/ifr/');
-			}
-			else if(image.hostname.includes('hub.com')){
-				source = source.replace('hub.com/', 'hub.com/embed/')
-				var search = image.search.substring(1).split('&')
-				var viewkey = search.find(x => x.includes('viewkey')).split('=')[1];
-				source = source.substring(0, source.indexOf('embed/')) + 'embed/' + viewkey;
-			}
-			else if(image.hostname.includes('gifs.com')){
-				source = source.replace('/watch/', '/ifr/');
-			}
-			else if(image.hostname === 'www.youtube.com'){
-				var url = source.split('?');
-				var videoid = url[url.length - 1].split('&').find(x => x.includes('v=')).split('=')[1];
+		else if(item.domain == "i.imgur.com" && item.url.includes('.gifv')){
+			itemType = "FullVideo";
 
-				source = 'https://www.youtube.com/embed/' + videoid;
-			}
-			else if(image.hostname === 'youtu.be'){
-				var url = source.split('/');
-				url = url.filter(x => x !== "");
-				var videoid = url[url.length - 1];
-
-				source = 'https://www.youtube.com/embed/' + videoid;
-			}
-
-			source = source.replace('http://', 'https://');
-			
+			browseItem += `<video controls autoplay loop ` + (muted ? 'muted' : '') + ` class="itemImage">
+			<source src="` + item.preview.reddit_video_preview.fallback_url + `" type="video/mp4" />
+			</video>`
+		}
+		else if (item.domain == "i.redd.it" || (item.domain == "i.imgur.com" && !item.url.includes('/a/'))) {
+			itemType = "FullImage";
+			browseItem += '<img class="itemImage" src="' + item.url + '"/>';
+		}
+		else if (item.media) {
+			itemType = "CompactEmbed";
+			var source = item.secure_media_embed.media_domain_url + '?responsive=true&is_nightmode=true';
 			browseItem += '<iframe class="itemImage" height="512" width="100%" src="' + source + '" allowfullscreen="true" style="width: 100%; margin: 0px auto;"></iframe>';
 		}
-
-		var imgs = $(content).find('img');
-		var includePreview = imgs.length > 0;
-		if(includePreview){
-			browseItem += '<br/>'
-			browseItem += '<a href="#" id="thumbnail" class="ui-btn ui-corner-all ui-btn-inline">Thumbnail</a>';
-			browseItem += '<div id="preview" style="margin-top:5px;">'
-			browseItem += imgs[0].outerHTML;
+		else if (item.is_self) {
+			itemType = "FullText";
+			var html = item.selftext_html;
+			browseItem += '<div id="textPost" class="post">';
+			let txt = document.createElement("textarea");
+		    txt.innerHTML = html;
+			browseItem += txt.value;
 			browseItem += '</div>'
+		}
+		/*else if (item.post_hint == 'image') {
+			itemType = "FullImage";
+
+		}*/	
+		else if (item.post_hint == 'link') {
+			itemType = "CompactLink";
+			browseItem += '<div id="linkPost" class="post">';
+			browseItem += '<img src="' + item.thumbnail + '" class="itemImage"/><br/>';
+			browseItem += '<a href="' + item.url + '" target="_blank">' + item.domain + '</a>';
+			browseItem += '</div>';
+		}	
+		else if (item.url_overridden_by_dest.startsWith('https://www.reddit.com/gallery/') && item.gallery_data) {
+			itemType = "FullGallery";
+			var order = item.gallery_data.items.map(item => item.media_id);
+			var items = order.map(id => item.media_metadata[id]);
+
+			var images = items.map(item => ({
+				src: item.s.u ? item.s.u.split("?")[0].replace("preview", "i") : item.s.gif
+			}))
+
+			browseItem += '<div id="browseGallery" class="gallery">';
+
+			for(var i = 0; i < images.length; i++){
+				browseItem += `
+					<div class="gallery-item ` + (i == 0 ? 'active' : '') + `">
+						<img src="` + images[i].src + `" class="itemImage">
+					</div>
+					<p>` + (i + 1) + `/` + images.length + ``
+			}
+				
+			browseItem += '</div>';
+			browseItem += '<a href="#" class="nextItem ui-btn ui-corner-all ui-btn-inline">Next</a>';
+			if(index > 0){
+				browseItem += '<a href="#" class="backItem ui-btn ui-corner-all ui-btn-inline"><</a>';
+			}
+		}
+		else {
+			itemType = 'unknown';
+			browseItem += '<p>This item cannot be displayed. Please try viewing the source directly.</p>';
 		}
 
 		$('#app').html(browseItem).trigger('create');
 	
 		$('#subredditButton').click(function(){
-			browser.displayList(subreddit, subredditList, sort);
-		})
-	
-		$('#nextItem').click(function(){
-			if(index + 1 >= subredditList.length){
-				browser.getNextList(subreddit, sort, id, subredditList).then(list => {
-					$.mobile.loading('hide');
-					var next = list[list.findIndex((el) => el.guid === id) + 1];
-					if(next !== undefined){
-						var nextGuid = next.guid;
-						browser.displayItem(subreddit, list, sort, nextGuid)
-					} else {
-						$('#nextItem').remove();
-					}
-				});
-			}
-			else{
-				var guid = subredditList[index + 1].guid;
-				browser.displayItem(subreddit, subredditList, sort, guid);
-			}
-		})
-	
-		$('#backItem').click(function(){
-			var guid = subredditList[index - 1].guid;
-			browser.displayItem(subreddit, subredditList, sort, guid, true);
+			browser.displayList(id, sort, list, after);
 		})
 
-		if(includePreview){
-			$('#preview').hide();
-			$('#thumbnail').click(function(){
-				$('#thumbnail').remove();
-				$('#preview').show();
-			})
+		if(itemType == "FullGallery"){
+			$('#itemTitle').append(' [Gallery]').trigger('create');
 		}
+	
+		$('.nextItem').click(function(){
+			if(index + 1 >= list.length){
+				var url = browser.getUrl(id, sort, after);
+				browser.getSubmissions(url)
+					.then((data) => {
+						var concatenated = list.concat(data.posts);
+						var last = concatenated[concatenated.length - 1].data.name;
+						$.mobile.loading('hide');
+						browser.displayItem(id, sort, concatenated, concatenated[index + 1].data.name, last);
+					})
+			}
+			else{
+				browser.displayItem(id, sort, list, list[index + 1].data.name, after);
+			}
+		})
+	
+		$('.backItem').click(function(){
+			browser.displayItem(id, sort, list, list[index - 1].data.name, after);
+		})
 	}
 
 	methods.getAge = function(timestamp){
-		var d = new Date(timestamp);
+		var d = new Date(timestamp * 1000);
 		var now = new Date();
 		var diff = now - d;
 	

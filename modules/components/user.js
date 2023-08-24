@@ -1,13 +1,25 @@
-const UserComponent = {
-	render: (id, sort) => {
-		var url = browser.getUrl('u/' + id);
-		browser.getSubredditList(url, 'u/' + id).then(list => {
-			browser.displayList('u/' + id, list, sort)
-		});
+var posts = [];
+var after = '';
 
-		$('#favoritesButton').hide();
-		$('#audioMutedButton').show();
+async function setup(id){
+	var sort = 'hot';
+	var url = browser.getUrl('user/' + id, sort);
+	let response = await browser.getSubmissions(url);
+	if (!response) return;
+
+	posts = response.posts;
+	after = response.after;
+
+	browser.displayList('user/' + id, sort, posts, after);
+
+	$('#favoritesButton').hide();
+	$('#audioMutedButton').show();
+}
+
+const UserComponent = {
+	render: (id) => {
+		setup(id);
 	}
 } 
 
-export { UserComponent };
+export { UserComponent }

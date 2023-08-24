@@ -3,9 +3,12 @@ function browse(){
 	if(id.indexOf('u/') > -1){
 		window.location = '#/user/' + id.replace('u/', '');
 	}
+	else if(id.indexOf('user/') > -1){
+		window.location = '#/' + id;
+	}
 	else
 	{
-		window.location = '#/subreddit/' + id;
+		window.location = '#/r/' + id;
 	}
 }
 
@@ -18,7 +21,7 @@ const HomeComponent = {
 		var subredditFavs = favorites.filter(x => x.substring(0, 2) !== 'u/');
 		var userFavs = favorites.filter(x => x.substring(0, 2) === 'u/');
 		subredditFavs.forEach(subreddit =>
-			favoritesHtml += '<a href="#/subreddit/' + subreddit + '" class="ui-btn ui-btn-corner-all ui-btn-inline">' + subreddit + '</a></br>'
+			favoritesHtml += '<a href="#/r/' + subreddit + '" class="ui-btn ui-btn-corner-all ui-btn-inline">' + subreddit + '</a></br>'
 		)
 		userFavs.forEach(user =>
 			favoritesHtml += '<a href="#/user/' + user.replace('u/', '') + '" class="ui-btn ui-btn-corner-all ui-btn-inline">' + user + '</a></br>'
