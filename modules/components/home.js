@@ -18,13 +18,13 @@ const HomeComponent = {
 
 		var favorites = browser.getFavorites();
 		var favoritesHtml = '';
-		var subredditFavs = favorites.filter(x => x.substring(0, 2) !== 'u/');
-		var userFavs = favorites.filter(x => x.substring(0, 2) === 'u/');
+		var subredditFavs = favorites.filter(x => x.substring(0, 2) !== 'u/' && x.substring(0, 5) !== 'user/');
+		var userFavs = favorites.filter(x => x.substring(0, 2) === 'u/' || x.substring(0, 5) === 'user/');
 		subredditFavs.forEach(subreddit =>
 			favoritesHtml += '<a href="#/r/' + subreddit + '" class="ui-btn ui-btn-corner-all ui-btn-inline">' + subreddit + '</a></br>'
 		)
 		userFavs.forEach(user =>
-			favoritesHtml += '<a href="#/user/' + user.replace('u/', '') + '" class="ui-btn ui-btn-corner-all ui-btn-inline">' + user + '</a></br>'
+			favoritesHtml += '<a href="#/' + user.replace('u/', 'user/') + '" class="ui-btn ui-btn-corner-all ui-btn-inline">' + user + '</a></br>'
 		)
 
 		var section = `

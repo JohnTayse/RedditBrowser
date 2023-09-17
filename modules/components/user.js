@@ -2,7 +2,7 @@ var posts = [];
 var after = '';
 
 async function setup(id){
-	var sort = 'hot';
+	var sort = 'submitted';
 	var url = browser.getUrl('user/' + id, sort);
 	let response = await browser.getSubmissions(url);
 	if (!response) return;
