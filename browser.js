@@ -206,7 +206,7 @@ var browser = (function(){
 			<source src="` + item.preview.reddit_video_preview.fallback_url + `" type="video/mp4" />
 			</video>`
 		}
-		else if (item.domain == "i.redd.it" || (item.domain == "i.imgur.com" && !item.url.includes('/a/'))) {
+		else if (item.domain == "i.redd.it" || (item.domain == "i.imgur.com" && !item.url.includes('/a/')) || item.post_hint == 'image') {
 			itemType = "FullImage";
 			browseItem += '<img class="itemImage" src="' + item.url + '"/>';
 		}
@@ -227,10 +227,6 @@ var browser = (function(){
 		else if(item.url.includes('gifs.com')){
 			browseItem += '<iframe class="itemImage" height="512" width="100%" src="' + item.url + '" allowfullscreen="true" style="width: 100%; margin: 0px auto;"></iframe>';
 		}
-		/*else if (item.post_hint == 'image') {
-			itemType = "FullImage";
-			
-		}*/
 		else if (item.post_hint == 'link') {
 			itemType = "CompactLink";
 			browseItem += '<div id="linkPost" class="post">';
