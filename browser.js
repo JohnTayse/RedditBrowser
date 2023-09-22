@@ -206,7 +206,7 @@ var browser = (function(){
 			<source src="` + item.preview.reddit_video_preview.fallback_url + `" type="video/mp4" />
 			</video>`
 		}
-		else if (item.domain == "i.redd.it" || (item.domain == "i.imgur.com" && !item.url.includes('/a/')) || item.post_hint == 'image') {
+		else if (item.domain == "i.redd.it" || (item.domain == "i.imgur.com" && !item.url.includes('/a/')) || (item.post_hint == 'image' && !item.url.includes('gifs.com'))) {
 			itemType = "FullImage";
 			browseItem += '<img class="itemImage" src="' + item.url + '"/>';
 		}
