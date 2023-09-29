@@ -235,7 +235,11 @@ var browser = (function(){
 			browseItem += '</div>';
 		}	
 		else if (item.url_overridden_by_dest.startsWith('https://www.reddit.com/gallery/') && item.gallery_data) {
+			scroll(0,0);
 			itemType = "FullGallery";
+
+			var isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
 			var order = item.gallery_data.items.map(item => item.media_id);
 			var items = order.map(id => item.media_metadata[id]);
 
@@ -246,18 +250,27 @@ var browser = (function(){
 			browseItem += '<div id="browseGallery" class="gallery">';
 
 			for(var i = 0; i < images.length; i++){
+				if(i == images.length - 1 && isMobileDevice){
+					browseItem += '<a href="#" class="nextItem ui-btn ui-corner-all ui-btn-inline">Next</a>';
+					if(index > 0){
+						browseItem += '<a href="#" class="backItem ui-btn ui-corner-all ui-btn-inline"><</a>';
+					}
+				}
+
 				browseItem += `
+					<p>` + (i + 1) + `/` + images.length + `<p/>
 					<div class="gallery-item ` + (i == 0 ? 'active' : '') + `">
-						<img src="` + images[i].src + `" class="itemImage">
-					</div>
-					<p>` + (i + 1) + `/` + images.length + ``
+						<img src="` + images[i].src + `" class="itemImage"></div>`
 			}
-				
+
+			if(!isMobileDevice){
+				browseItem += '<a href="#" class="nextItem ui-btn ui-corner-all ui-btn-inline">Next</a>';
+					if(index > 0){
+						browseItem += '<a href="#" class="backItem ui-btn ui-corner-all ui-btn-inline"><</a>';
+					}
+			}
+
 			browseItem += '</div>';
-			browseItem += '<a href="#" class="nextItem ui-btn ui-corner-all ui-btn-inline">Next</a>';
-			if(index > 0){
-				browseItem += '<a href="#" class="backItem ui-btn ui-corner-all ui-btn-inline"><</a>';
-			}
 		}
 		else {
 			itemType = 'unknown';
@@ -270,9 +283,9 @@ var browser = (function(){
 			browser.displayList(id, sort, list, after);
 		})
 
-		if(itemType == "FullGallery"){
+		/*if(itemType == "FullGallery"){
 			$('#itemTitle').append(' [Gallery]').trigger('create');
-		}
+		}*/
 	
 		$('.nextItem').click(function(){
 			if(index + 1 >= list.length){
