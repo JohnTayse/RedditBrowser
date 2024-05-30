@@ -234,7 +234,7 @@ var browser = (function(){
 			browseItem += '<a href="' + item.url + '" target="_blank">' + item.domain + '</a>';
 			browseItem += '</div>';
 		}	
-		else if (item.url_overridden_by_dest.startsWith('https://www.reddit.com/gallery/') && item.gallery_data) {
+		else if (item.is_gallery || (item.url_overridden_by_dest.startsWith('https://www.reddit.com/gallery/') && item.gallery_data)) {
 			scroll(0,0);
 			itemType = "FullGallery";
 
@@ -275,6 +275,9 @@ var browser = (function(){
 		else {
 			itemType = 'unknown';
 			browseItem += '<p>This item cannot be displayed. Please try viewing the source directly.</p>';
+			if(item.thumbnail){
+				browseItem += '<img class="itemImage" src="' + item.thumbnail + '"/>';
+			}
 		}
 
 		$('#app').html(browseItem).trigger('create');
