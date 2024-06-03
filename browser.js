@@ -44,7 +44,7 @@ var browser = (function(){
 		return baseUrl;
 	}
 
-	methods.getSubmissions = async function(url) {
+	methods.getSubmissions = async function(id, url) {
 		return await fetch(url)
 			.then(res => res.json())
 			.then(json => json.data)
@@ -54,9 +54,32 @@ var browser = (function(){
 			}))
 			.catch(err => {
 				$.mobile.loading('hide');
-				alert("This page does not exist or was deleted.")
-				window.location = '';
+				if(confirm('This page does not exist or was deleted. Stay here?')){
+					browser.displayError(id);
+				}
+				else{
+					window.location = '';
+				}
 			});
+	}
+
+	methods.displayError = function(id){
+		$('#audioMutedButton').show();
+
+		$('#subredditButton').remove();
+
+		var errorDisplay = '<section id="browseList" class="ui-grid-c">';
+		errorDisplay = '<span id="top"></span>';
+		var isFavorite = browser.isFavorite(id);
+		if(isFavorite !== undefined){
+			errorDisplay += '<button id="favoriteButton" onclick="browser.removeFavorite(\'' + id + '\')" class="ui-btn ui-corner-all ui-btn-inline">' + id + ' &#9733</button>';
+		}
+		else {
+			errorDisplay += '<button id="favoriteButton" onclick="browser.addFavorite(\'' + id + '\')" class="ui-btn ui-corner-all ui-btn-inline">' + id + ' &#9734</button>';
+		}
+
+		errorDisplay += '<p>This page does not exist or was deleted.</p>';
+		$('#app').html(errorDisplay).trigger('create');
 	}
 
 	methods.displayList = function(id, sort, posts, after){

@@ -4,7 +4,7 @@ var after = '';
 async function setup(id){
 	var sort = 'submitted';
 	var url = browser.getUrl('user/' + id, sort);
-	let response = await browser.getSubmissions(url);
+	let response = await browser.getSubmissions(id, url);
 	if (!response) return;
 
 	posts = response.posts;
