@@ -145,7 +145,7 @@ var browser = (function(){
 		$('#sortSelect').on('change', function(){
 			var sortSelected = $('#sortSelect').val();
 			var url = browser.getUrl(id, sortSelected);
-			browser.getSubmissions(url)
+			browser.getSubmissions(id, url)
 				.then((data) => {
 					browser.displayList(id, sortSelected, data.posts, data.after);
 				})
@@ -153,7 +153,7 @@ var browser = (function(){
 
 		$('#nextButton').click(function(){
 			var url = browser.getUrl(id, sort, after);
-			browser.getSubmissions(url)
+			browser.getSubmissions(id, url)
 				.then((data) => {
 					var concatenated = posts.concat(data.posts);
 					var last = concatenated[concatenated.length - 1].data.name
@@ -316,7 +316,7 @@ var browser = (function(){
 		$('.nextItem').click(function(){
 			if(index + 1 >= list.length){
 				var url = browser.getUrl(id, sort, after);
-				browser.getSubmissions(url)
+				browser.getSubmissions(id, url)
 					.then((data) => {
 						var concatenated = list.concat(data.posts);
 						var last = concatenated[concatenated.length - 1].data.name;
