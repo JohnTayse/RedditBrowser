@@ -86,6 +86,7 @@ var browser = (function(){
 		}
 
 		errorDisplay += '<p>This page does not exist or was deleted.</p>';
+		errorDisplay += '<a href="' + host + '/' + redditId + '" style="float:left" target="_blank">(source)</a>';
 		$('#app').html(errorDisplay).trigger('create');
 	}
 
