@@ -68,7 +68,7 @@ var browser = (function(){
 	methods.displayError = function(id, isUser){
 		var redditId = id;
 		if(isUser){
-			redditId += 'user/' + id;
+			redditId = 'user/' + id;
 		}
 
 		$('#audioMutedButton').show();
