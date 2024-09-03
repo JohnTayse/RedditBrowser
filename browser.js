@@ -45,6 +45,8 @@ var browser = (function(){
 	}
 
 	methods.getSubmissions = async function(id, url) {
+		var isUser = (url.indexOf('/user/') > -1);
+
 		return await fetch(url)
 			.then(res => res.json())
 			.then(json => json.data)
@@ -55,7 +57,7 @@ var browser = (function(){
 			.catch(err => {
 				$.mobile.loading('hide');
 				if(confirm('This page does not exist or was deleted. Stay here?')){
-					browser.displayError(id);
+					browser.displayError(id, isUser);
 				}
 				else{
 					window.location = '';
@@ -63,19 +65,24 @@ var browser = (function(){
 			});
 	}
 
-	methods.displayError = function(id){
+	methods.displayError = function(id, isUser){
+		var redditId = id;
+		if(isUser){
+			redditId += 'user/' + id;
+		}
+
 		$('#audioMutedButton').show();
 
 		$('#subredditButton').remove();
 
 		var errorDisplay = '<section id="browseList" class="ui-grid-c">';
 		errorDisplay = '<span id="top"></span>';
-		var isFavorite = browser.isFavorite(id);
+		var isFavorite = browser.isFavorite(redditId);
 		if(isFavorite !== undefined){
-			errorDisplay += '<button id="favoriteButton" onclick="browser.removeFavorite(\'' + id + '\')" class="ui-btn ui-corner-all ui-btn-inline">' + id + ' &#9733</button>';
+			errorDisplay += '<button id="favoriteButton" onclick="browser.removeFavorite(\'' + redditId + '\')" class="ui-btn ui-corner-all ui-btn-inline">' + redditId + ' &#9733</button>';
 		}
 		else {
-			errorDisplay += '<button id="favoriteButton" onclick="browser.addFavorite(\'' + id + '\')" class="ui-btn ui-corner-all ui-btn-inline">' + id + ' &#9734</button>';
+			errorDisplay += '<button id="favoriteButton" onclick="browser.addFavorite(\'' + redditId + '\')" class="ui-btn ui-corner-all ui-btn-inline">' + redditId + ' &#9734</button>';
 		}
 
 		errorDisplay += '<p>This page does not exist or was deleted.</p>';
