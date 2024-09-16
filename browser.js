@@ -322,22 +322,6 @@ var browser = (function(){
 		}
 
 		$('#app').html(browseItem).trigger('create');
-
-		if(item.url.includes('redgifs.com')){
-			var a = $('#rgDownload');
-			var dlLink = a.attr('href');
-			var dlLinkName = a.attr('download');
-			var xhr = new XMLHttpRequest()
-
-			xhr.open('GET', dlLink, true);
-			xhr.responseType = 'blob';
-			xhr.onload = function () {
-				var file = new Blob([xhr.response], { type : 'video/iso.segment' });
-				a.attr('href', window.URL.createObjectURL(file));
-				a.attr('download', dlLinkName);
-			};
-			xhr.send();
-		}
 	
 		$('#subredditButton').click(function(){
 			browser.displayList(id, sort, list, after);
