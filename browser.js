@@ -245,6 +245,16 @@ var browser = (function(){
 			itemType = "CompactEmbed";
 			var source = item.secure_media_embed.media_domain_url + '?responsive=true&is_nightmode=true';
 			browseItem += '<iframe class="itemImage" height="512" width="100%" src="' + source + '" allowfullscreen="true" style="width: 100%; margin: 0px auto;"></iframe>';
+
+			if(item.url.includes('redgifs.com')){
+				var med = item.media.oembed.thumbnail_url.split('/').at(-1).split('-')[0];
+
+				var dlLink = 'https://files.redgifs.com/' + med + '-mobile.m4s';
+
+				var dlLinkName = med + '.m4p';
+
+				browseItem += '<a id="rgDownload" href="' + dlLink + '" download="' + dlLinkName + '">Download</a>';
+			}
 		}
 		else if (item.is_self) {
 			itemType = "FullText";
@@ -312,6 +322,22 @@ var browser = (function(){
 		}
 
 		$('#app').html(browseItem).trigger('create');
+
+		if(item.url.includes('redgifs.com')){
+			var a = $('#rgDownload');
+			var dlLink = a.attr('href');
+			var dlLinkName = a.attr('download');
+			var xhr = new XMLHttpRequest()
+
+			xhr.open('GET', dlLink, true);
+			xhr.responseType = 'blob';
+			xhr.onload = function () {
+				var file = new Blob([xhr.response], { type : 'video/iso.segment' });
+				a.attr('href', window.URL.createObjectURL(file));
+				a.attr('download', dlLinkName);
+			};
+			xhr.send();
+		}
 	
 		$('#subredditButton').click(function(){
 			browser.displayList(id, sort, list, after);
