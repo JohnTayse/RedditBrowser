@@ -251,9 +251,7 @@ var browser = (function(){
 
 				var dlLink = 'https://files.redgifs.com/' + med + '-mobile.m4s';
 
-				var dlLinkName = med + '.m4p';
-
-				browseItem += '<a id="rgDownload" href="' + dlLink + '" download="' + dlLinkName + '">Download</a>';
+				browseItem += '<a id="rgDownload" href="' + dlLink + '" download="' + med + '" target="_blank">Download</a>';
 			}
 		}
 		else if (item.is_self) {
