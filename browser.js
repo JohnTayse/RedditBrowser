@@ -249,7 +249,7 @@ var browser = (function(){
 			if(item.url.includes('redgifs.com')){
 				var med = item.media.oembed.thumbnail_url.split('/').at(-1).split('-')[0];
 
-				var dlLink = 'https://files.redgifs.com/' + med + '-mobile.m4s';
+				var dlLink = 'https://media.redgifs.com/' + med + '.m4s';
 
 				browseItem += '<a id="rgDownload" href="' + dlLink + '" download="' + med + '" target="_blank">Download</a>';
 			}
